@@ -1,0 +1,6 @@
+[package]
+name = "poap"
+version = "0.0.1"
+
+[addresses]
+poap = "0x0"

@@ -1,0 +1,48 @@
+.mint-button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.mint-button-select {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  font-size: 1rem;
+  color: #1f2937;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.mint-button-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.mint-button-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.mint-button-button-enabled {
+  background-color: #2563eb;
+  color: white;
+}
+
+.mint-button-button-enabled:hover {
+  background-color: #1d4ed8;
+}
+
+.mint-button-button-disabled {
+  background-color: #9ca3af;
+  color: white;
+  cursor: not-allowed;
+} 
