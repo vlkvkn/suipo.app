@@ -1,8 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import ghPages from 'vite-plugin-gh-pages';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  base: "/" // "/" если на собственном домене
+  plugins: [react(),
+    ghPages({
+      dir: 'dist',
+      branch: 'gh-pages', // по умолчанию
+      cname: 'suipo.app', // если нужен CNAME
+    }),
+  base: "/"
 });
