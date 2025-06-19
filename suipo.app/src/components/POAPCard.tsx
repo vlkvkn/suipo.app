@@ -10,9 +10,11 @@ export function POAPCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const address = wallet?.currentWallet?.accounts[0]?.address;
+
   useEffect(() => {
     async function loadPOAPs() {
-      if (!wallet?.currentWallet?.accounts[0]?.address) {
+      if (!address) {
         setPoaps([]);
         setLoading(false);
         setError(null);
@@ -20,7 +22,7 @@ export function POAPCard() {
       }
       try {
         setError(null);
-        const userPoaps = await getPOAPs(suiClient, wallet.currentWallet.accounts[0].address);
+        const userPoaps = await getPOAPs(suiClient, address);
         setPoaps(userPoaps);
       } catch (e) {
         setError('Failed to load POAPs');
@@ -29,7 +31,7 @@ export function POAPCard() {
       }
     }
     loadPOAPs();
-  }, [wallet, suiClient]);
+  }, [address, suiClient]);
 
   if (loading) return <div>Loading POAPs...</div>;
   if (error) return <div>{error}</div>;

@@ -1,5 +1,5 @@
 import { MintButton } from '../components/MintButton';
-import { POAPCard } from '../components/POAPcard';
+import { POAPCard } from '../components/POAPCard';
 
 export function Home() {
   return (
