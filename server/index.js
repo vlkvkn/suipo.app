@@ -4,7 +4,7 @@ const path = require('path');
 require('dotenv').config();
 
 const uploadRoutes = require('./routes/upload');
-// const zkloginRoutes = require('./routes/zklogin');
+const zkloginRoutes = require('./routes/zklogin');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -29,7 +29,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/upload', uploadRoutes);
-// app.use('/api/zklogin', zkloginRoutes);
+app.use('/api/zklogin', zkloginRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
