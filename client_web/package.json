@@ -13,7 +13,7 @@
     "deploy": "vite gh-pages"
   },
   "dependencies": {
-    "@mysten/sui": "1.33.0",
+    "@mysten/sui": "^1.34.0",
     "@mysten/wallet-standard": "^0.11.0",
     "@radix-ui/colors": "^3.0.0",
     "@radix-ui/react-icons": "^1.3.0",
