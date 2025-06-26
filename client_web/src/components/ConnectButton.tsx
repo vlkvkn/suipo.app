@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Button, DropdownMenu, Text, Flex, Box, Badge } from '@radix-ui/themes';
+import { useState, useEffect, useMemo } from 'react';
+import { Button, DropdownMenu, Text, Flex, Badge } from '@radix-ui/themes';
 import { getWallets, Wallet, WalletWithRequiredFeatures } from '@mysten/wallet-standard';
 import { useWallet } from '../contexts/WalletContext';
-import { popularWallets, PopularWallet } from '../config/wallets';
+import { useZkLogin } from '../hooks/useZkLogin';
+import { popularWallets } from '../config/wallets';
 import './ConnectButton.css';
 
 interface WalletInfo {
@@ -11,10 +12,13 @@ interface WalletInfo {
   url?: string;
   installed: boolean;
   wallet?: Wallet;
+  isZkLogin?: boolean;
+  type?: 'wallet' | 'zklogin';
 }
 
 export function ConnectButton() {
   const { account, connected, connecting, connect, disconnect } = useWallet();
+  const { isAuthenticated, isLoading: zkLoginLoading, userAddress, login: zkLogin, logout: zkLogout } = useZkLogin();
   const [isOpen, setIsOpen] = useState(false);
   const [availableWallets, setAvailableWallets] = useState<WalletInfo[]>([]);
 
@@ -31,6 +35,16 @@ export function ConnectButton() {
         );
         
         const walletInfos: WalletInfo[] = popularWallets.map(popularWallet => {
+          // Check if this is zkLogin by type field
+          if (popularWallet.type === 'zklogin') {
+            return {
+              ...popularWallet,
+              installed: true, // zkLogin is always available
+              isZkLogin: true,
+              type: popularWallet.type as 'zklogin'
+            };
+          }
+
           const installedWallet = uniqueWallets.find(w => {
             const walletName = w.name.toLowerCase();
             const popularName = popularWallet.name.toLowerCase();
@@ -52,7 +66,8 @@ export function ConnectButton() {
           return {
             ...popularWallet,
             installed: !!installedWallet,
-            wallet: installedWallet
+            wallet: installedWallet,
+            type: (popularWallet.type as 'wallet') || 'wallet'
           };
         });
 
@@ -68,7 +83,8 @@ export function ConnectButton() {
               name: wallet.name,
               icon: wallet.icon,
               installed: true,
-              wallet: wallet
+              wallet: wallet,
+              type: 'wallet'
             });
           }
         });
@@ -80,7 +96,8 @@ export function ConnectButton() {
         // Fallback to popular wallets list with all marked as not installed
         setAvailableWallets(popularWallets.map(wallet => ({
           ...wallet,
-          installed: false
+          installed: false,
+          type: (wallet.type as 'wallet' | 'zklogin') || 'wallet'
         })));
       }
     };
@@ -94,9 +111,29 @@ export function ConnectButton() {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
+
+  // Memoize wallet filtering to prevent unnecessary re-renders
+  const { installedWallets, zkLoginWallets, notInstalledWallets } = useMemo(() => {
+    const installed = availableWallets.filter(w => w.installed && w.type !== 'zklogin');
+    const zkLogin = availableWallets.filter(w => w.type === 'zklogin');
+    const notInstalled = availableWallets.filter(w => !w.installed);
+    
+    return { installedWallets: installed, zkLoginWallets: zkLogin, notInstalledWallets: notInstalled };
+  }, [availableWallets]);
 
   const handleConnect = async (walletInfo: WalletInfo) => {
+    if (walletInfo.type === 'zklogin') {
+      // Handle zkLogin
+      try {
+        await zkLogin();
+      } catch (error) {
+        console.error('Failed to connect zkLogin:', error);
+        alert('Failed to connect zkLogin. Please try again.');
+      }
+      return;
+    }
+
     if (!walletInfo.installed || !walletInfo.wallet) {
       // Open wallet installation page
       if (walletInfo.url) {
@@ -115,7 +152,11 @@ export function ConnectButton() {
   };
 
   const handleDisconnect = () => {
-    disconnect();
+    if (isAuthenticated) {
+      zkLogout();
+    } else {
+      disconnect();
+    }
     setIsOpen(false);
   };
 
@@ -123,7 +164,8 @@ export function ConnectButton() {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  if (connecting) {
+  // Show loading state for either wallet connection or zkLogin
+  if (connecting || zkLoginLoading) {
     return (
       <Button disabled>
         Connecting...
@@ -131,12 +173,21 @@ export function ConnectButton() {
     );
   }
 
-  if (connected && account) {
+  // Show connected state for either wallet or zkLogin
+  if ((connected && account) || (isAuthenticated && userAddress)) {
+    const currentAddress = account?.address || userAddress;
+    const isZkLoginConnected = isAuthenticated && userAddress;
+
     return (
       <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenu.Trigger>
           <Button variant="soft">
-            {formatAddress(account.address)}
+            {formatAddress(currentAddress!)}
+            {isZkLoginConnected && (
+              <Badge color="green" variant="soft" size="1" style={{ marginLeft: '8px' }}>
+                zkLogin
+              </Badge>
+            )}
           </Button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
@@ -146,8 +197,13 @@ export function ConnectButton() {
                 Connected
               </Text>
               <Text size="2" weight="medium">
-                {account.address}
+                {currentAddress}
               </Text>
+              {isZkLoginConnected && (
+                <Text size="1" color="gray">
+                  zkLogin (Google)
+                </Text>
+              )}
             </Flex>
           </DropdownMenu.Item>
           <DropdownMenu.Separator />
@@ -159,8 +215,45 @@ export function ConnectButton() {
     );
   }
 
-  const installedWallets = availableWallets.filter(w => w.installed);
-  const notInstalledWallets = availableWallets.filter(w => !w.installed);
+  const renderWalletSection = (
+    wallets: WalletInfo[], 
+    title: string, 
+    badgeColor: 'green' | 'blue', 
+    badgeText: string,
+    showSeparator: boolean = false
+  ) => {
+    if (wallets.length === 0) return null;
+
+    return (
+      <>
+        <DropdownMenu.Label>
+          <Text size="1" color="gray" weight="medium" className="dropdown-label">
+            {title}
+          </Text>
+        </DropdownMenu.Label>
+        {wallets.map((wallet) => (
+          <DropdownMenu.Item key={wallet.name} onClick={() => handleConnect(wallet)}>
+            <div className="wallet-item">
+              {wallet.icon && (
+                <img 
+                  src={wallet.icon} 
+                  alt={wallet.name} 
+                  className="wallet-icon"
+                />
+              )}
+              <Text className="wallet-name">
+                {wallet.name}
+              </Text>
+              <Badge color={badgeColor} variant="soft" size="1" className={`wallet-badge ${badgeColor === 'green' ? 'installed' : 'install'}`}>
+                {badgeText}
+              </Badge>
+            </div>
+          </DropdownMenu.Item>
+        ))}
+        {showSeparator && <DropdownMenu.Separator className="dropdown-separator" />}
+      </>
+    );
+  };
 
   return (
     <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
@@ -170,63 +263,30 @@ export function ConnectButton() {
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content className="connect-button-dropdown">
-        {installedWallets.length > 0 && (
-          <>
-            <DropdownMenu.Label>
-              <Text size="1" color="gray" weight="medium" className="dropdown-label">
-                INSTALLED WALLETS
-              </Text>
-            </DropdownMenu.Label>
-            {installedWallets.map((wallet) => (
-              <DropdownMenu.Item key={wallet.name} onClick={() => handleConnect(wallet)}>
-                <div className="wallet-item">
-                  {wallet.icon && (
-                    <img 
-                      src={wallet.icon} 
-                      alt={wallet.name} 
-                      className="wallet-icon"
-                    />
-                  )}
-                  <Text className="wallet-name">
-                    {wallet.name}
-                  </Text>
-                  <Badge color="green" variant="soft" size="1" className="wallet-badge installed">
-                    Installed
-                  </Badge>
-                </div>
-              </DropdownMenu.Item>
-            ))}
-            {notInstalledWallets.length > 0 && <DropdownMenu.Separator className="dropdown-separator" />}
-          </>
+        {/* zkLogin section - always at the top */}
+        {renderWalletSection(
+          zkLoginWallets, 
+          'ZKLOGIN', 
+          'green', 
+          'Available', 
+          installedWallets.length > 0 || notInstalledWallets.length > 0
+        )}
+
+        {/* Installed wallets section */}
+        {renderWalletSection(
+          installedWallets, 
+          'INSTALLED WALLETS', 
+          'green', 
+          'Installed', 
+          notInstalledWallets.length > 0
         )}
         
-        {notInstalledWallets.length > 0 && (
-          <>
-            <DropdownMenu.Label>
-              <Text size="1" color="gray" weight="medium" className="dropdown-label">
-                GET A WALLET
-              </Text>
-            </DropdownMenu.Label>
-            {notInstalledWallets.map((wallet) => (
-              <DropdownMenu.Item key={wallet.name} onClick={() => handleConnect(wallet)}>
-                <div className="wallet-item">
-                  {wallet.icon && (
-                    <img 
-                      src={wallet.icon} 
-                      alt={wallet.name} 
-                      className="wallet-icon"
-                    />
-                  )}
-                  <Text className="wallet-name">
-                    {wallet.name}
-                  </Text>
-                  <Badge color="blue" variant="soft" size="1" className="wallet-badge install">
-                    Install
-                  </Badge>
-                </div>
-              </DropdownMenu.Item>
-            ))}
-          </>
+        {/* Not installed wallets section */}
+        {renderWalletSection(
+          notInstalledWallets, 
+          'GET A WALLET', 
+          'blue', 
+          'Install'
         )}
       </DropdownMenu.Content>
     </DropdownMenu.Root>

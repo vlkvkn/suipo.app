@@ -8,5 +8,14 @@ export default defineConfig({
     react(),
     ghPages({dir: 'dist',branch: 'gh-pages',cname: 'suipo.app'})
   ],
-  base: "/"
+  base: "/",
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 });

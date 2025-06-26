@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useCurrentWallet } from '../contexts/WalletContext';
+import { useCurrentWallet, useSuiClient } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
+import { useZkLogin } from '../hooks/useZkLogin';
+import { useZkLoginTransaction } from '../hooks/useZkLoginTransaction';
 import { buildMintPoapTx } from '../sui/poap';
 
 function useQuery() {
@@ -12,17 +14,40 @@ const MintPage = () => {
   const query = useQuery();
   const eventKey = query.get('event') || '';
   const wallet = useCurrentWallet();
+  const { isAuthenticated, userAddress, ephemeralKeyPair, jwt, maxEpoch, randomness } = useZkLogin();
   const [status, setStatus] = useState<'idle'|'minting'|'success'|'error'>('idle');
   const [error, setError] = useState<string>('');
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const suiClient = useSuiClient();
+
+   // Always create zkLogin transaction hook, but only use it when connected
+   const zkLoginTransaction = useZkLoginTransaction({
+    client: suiClient,
+    ephemeralKeyPair: ephemeralKeyPair as any,
+    jwt: jwt || "",
+    maxEpoch: maxEpoch || 0,
+    randomness: randomness || '',
+    userAddress: userAddress || '',
+  });
+
+  // Check if user is connected via either standard wallet or zkLogin
+  const isConnected = wallet?.accounts[0]?.address || (isAuthenticated && userAddress);
+  const isZkLoginConnected = isAuthenticated && userAddress;
 
   useEffect(() => {
     async function handleMint() {
-      if (wallet?.accounts[0]?.address && eventKey) {
+      if (isConnected && eventKey) {
         setStatus('minting');
         try {
           const tx = buildMintPoapTx(eventKey);
-          const result = await signAndExecuteTransaction({ transaction: tx });
+          
+          let result;
+          if (isZkLoginConnected) {
+            result = await zkLoginTransaction.executeTransaction(tx);
+          } else {
+            result = await signAndExecuteTransaction({ transaction: tx });
+          }
+          
           if (result) {
             setStatus('success');
           } else {
@@ -37,13 +62,13 @@ const MintPage = () => {
     }
     handleMint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet, eventKey]);
+  }, [isConnected, eventKey]);
 
   if (!eventKey) {
     return <div style={{padding: 32}}>No event specified for minting.</div>;
   }
 
-  if (!wallet?.accounts[0]?.address) {
+  if (!isConnected) {
     return <div style={{padding: 32}}>
       <div>Please connect your wallet to mint POAP.</div>
     </div>;

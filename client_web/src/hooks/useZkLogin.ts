@@ -19,7 +19,7 @@ interface ZkLoginState {
   isLoading: boolean;
   error: string | null;
   userAddress: string | null;
-  ephemeralKeyPair?: Ed25519Keypair;
+  ephemeralKeyPair: Ed25519Keypair | undefined;
   jwt: string | null;
   maxEpoch: number | null;
   randomness?: string;
