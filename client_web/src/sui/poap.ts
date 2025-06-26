@@ -12,29 +12,46 @@ export interface POAP {
 
 // Get user's POAPs
 export async function getPOAPs(suiClient: any, address: string): Promise<POAP[]> {
-  const objects = await suiClient.getOwnedObjects({
-    owner: address,
-    filter: {
-      MatchAll: [
-        { StructType: `${PACKAGE_ID}::nft::PoapNFT` },
-      ],
-    },
-    options: {
-      showContent: true,
-    },
-  });
 
-  return objects.data.map((obj: any) => {
-    const content = obj.data?.content as any;
-    const fields = content?.fields || {};
-    return {
-      id: obj.data?.objectId || '',
-      name: fields.name,
-      description: fields.description,
-      imageUrl: fields.img_url,
-      eventId: fields.event_id,
-    };
-  });
+  try {
+    const objects = await suiClient.getOwnedObjects({
+      owner: address,
+      filter: {
+        MatchAll: [
+          { StructType: `${PACKAGE_ID}::nft::PoapNFT` },
+        ],
+      },
+      options: {
+        showContent: true,
+      },
+    });
+
+    console.log('Raw objects response:', objects);
+
+    if (!objects.data || objects.data.length === 0) {
+      console.log('No POAP objects found for address:', address);
+      return [];
+    }
+
+    const poaps = objects.data.map((obj: any) => {
+      console.log('Processing object:', obj);
+      const content = obj.data?.content as any;
+      const fields = content?.fields || {};
+
+      const poap = {
+        id: obj.data?.objectId || '',
+        name: fields.name || 'Unknown POAP',
+        description: fields.description || 'No description',
+        imageUrl: fields.img_url || '',
+        eventId: fields.event_id || 'Unknown Event',
+      };
+      return poap;
+    });
+    return poaps;
+  } catch (error) {
+    console.error('Error in getPOAPs:', error);
+    throw error;
+  }
 }
 
 // Get events
@@ -44,12 +61,19 @@ export async function getEvents(suiClient: any): Promise<POAPEvent[]> {
       id: EVENT_CONFIG_ID,
       options: { showContent: true },
     });
-    if (!eventConfig.data?.objectId) throw new Error('EventConfig not found');
+
+    if (!eventConfig.data?.objectId) {
+      console.error('EventConfig not found or invalid');
+      throw new Error('EventConfig not found');
+    }
+
     const dynamicFields = await suiClient.getDynamicFields({
-      parentId: eventConfig.data?.objectId || '',
+      parentId: eventConfig.data.objectId,
     });
     const eventsList = await Promise.all(
-      dynamicFields.data.map(async (field: any) => {
+      dynamicFields.data.map(async (field: any, index: number) => {
+        console.log(`Processing field ${index}:`, field);
+
         const event = await suiClient.getObject({
           id: field.objectId,
           options: { showContent: true },
@@ -57,7 +81,8 @@ export async function getEvents(suiClient: any): Promise<POAPEvent[]> {
         const content = event.data?.content as any;
         const fields = content?.fields || {};
         const eventName = typeof field.name?.value === 'string' ? field.name.value : 'Unknown Event';
-        return {
+
+        const eventData = {
           id: event.data?.objectId || '',
           name: eventName,
           description: fields.description || 'No description',
@@ -69,6 +94,7 @@ export async function getEvents(suiClient: any): Promise<POAPEvent[]> {
           expiredAt: fields.expired_at || 0,
           visitors: fields.visitors || []
         };
+        return eventData;
       })
     );
     return eventsList;

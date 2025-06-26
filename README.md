@@ -6,10 +6,8 @@ A decentralized application (dApp) built on the SUI blockchain that allows users
 
 ## 🚀 Features
 
-- **Event Creation**: Create events with detailed information including name, description, image URL, and expiration date
 - **POAP Minting**: Mint unique NFTs for event attendees
-- **Wallet Integration**: Seamless integration with SUI wallets using [`@mysten/dapp-kit`] for wallet connection, transaction signing, and Sui data loading
-- **Modern UI**: Beautiful and responsive user interface with custom styling
+- **Event Creation**: Create events with detailed information including name, description, image URL, and expiration date
 - **Blockchain Storage**: All event data and POAPs are stored on the SUI blockchain
 
 
@@ -20,8 +18,8 @@ A decentralized application (dApp) built on the SUI blockchain that allows users
 Navigate to the frontend directory and install dependencies:
 
 ```bash
-cd suipo.app
-pnpm install
+cd client_web
+npm install
 ```
 
 Update the configuration in `src/config/index.ts` with your deployed contract addresses:
@@ -34,7 +32,7 @@ export const EVENT_CONFIG_ID = "YOUR_EVENT_CONFIG_ID";
 Create a `.env` file in the suipo.app directory. See `.env.example` for reference.
 
 ```bash
-pnpm dev
+npm dev
 ```
 
 The application will be available at `http://localhost:5173`

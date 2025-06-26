@@ -10,7 +10,7 @@ interface SignAndExecuteTransactionOptions {
 
 export function useSignAndExecuteTransaction() {
   const { wallet, account } = useWallet();
-  const network = useNetwork();
+  const { network } = useNetwork();
 
   return useMutation({
     mutationFn: async ({ 
