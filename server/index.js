@@ -9,6 +9,7 @@ const zkloginRoutes = require('./routes/zklogin');
 const app = express();
 const PORT = process.env.PORT || 8000;
 const ASSETS_PORT = process.env.ASSETS_PORT || 8001;
+const CLIENT_BUILD_PATH = path.join(__dirname, '..', 'client_web', 'dist');
 
 // CORS configuration
 const corsOptions = {
@@ -31,6 +32,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/upload', uploadRoutes);
 app.use('/api/zklogin', zkloginRoutes);
 
+// Serve built frontend if available
+app.use(express.static(CLIENT_BUILD_PATH));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'SUI POAP Server is running' });
@@ -42,9 +46,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Fallback routing
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'Route not found' });
+  }
+  res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
 });
 
 // Create assets server

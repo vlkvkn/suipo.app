@@ -1,0 +1,26 @@
+app = "suipo-app"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8000"
+  ASSETS_PORT = "8001"
+
+[[services]]
+  internal_port = 8000
+  protocol = "tcp"
+  [services.ports]
+    handlers = ["http"]
+    port = 80
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+[[services]]
+  internal_port = 8001
+  protocol = "tcp"
+  [[services.ports]]
+    handlers = ["http"]
+    port = 8001
