@@ -1,0 +1,25 @@
+# fly.toml app configuration file generated for suipoap on 2025-06-27T01:53:10+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'suipoap'
+primary_region = 'ams'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  PORT = '5173'
+
+[http_service]
+  internal_port = 5173
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
