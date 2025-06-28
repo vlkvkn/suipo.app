@@ -1,9 +1,6 @@
-import { useCurrentWallet } from '../contexts/WalletContext';
-import { useZkLogin } from '../hooks/useZkLogin';
-import { useEffect, useState, useMemo } from 'react';
+import { useCurrentWallet, useSuiClient, useZkLogin} from '../contexts/WalletContext';
+import { useEffect, useState } from 'react';
 import { getPOAPs, POAP } from '../sui/poap';
-import { SuiClient } from '@mysten/sui/client';
-import { getFullnodeUrl } from '@mysten/sui/client';
 import './POAPCard.css';
 
 export function POAPCard() {
@@ -15,19 +12,7 @@ export function POAPCard() {
 
   // Get address from either standard wallet or zkLogin
   const address = wallet?.accounts[0]?.address || (isAuthenticated ? userAddress : null);
-
-  // Create a stable SuiClient instance
-  const suiClient = useMemo(() => new SuiClient({ url: getFullnodeUrl('testnet') }), []);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('POAPCard state:', {
-      walletAddress: wallet?.accounts[0]?.address,
-      zkLoginAuthenticated: isAuthenticated,
-      zkLoginUserAddr: userAddress,
-      finalAddress: address
-    });
-  }, [wallet, isAuthenticated, userAddress, address]);
+  const suiClient = useSuiClient();
 
   useEffect(() => {
     async function loadPOAPs() {
@@ -39,19 +24,16 @@ export function POAPCard() {
       }
       try {
         setError(null);
-        console.log('Loading POAPs for address:', address);
         const userPoaps = await getPOAPs(suiClient, address);
-        console.log('Loaded POAPs:', userPoaps);
         setPoaps(userPoaps);
       } catch (e) {
-        console.error('Error loading POAPs:', e);
         setError('Failed to load POAPs');
       } finally {
         setLoading(false);
       }
     }
     loadPOAPs();
-  }, [address, suiClient]);
+  }, [address, suiClient, userAddress]);
 
   if (loading) return <div>Loading POAPs...</div>;
   if (error) return <div>{error}</div>;

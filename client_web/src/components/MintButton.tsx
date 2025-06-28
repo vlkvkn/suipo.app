@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useCurrentWallet, useSuiClient } from '../contexts/WalletContext';
+import { useCurrentWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
-import { useZkLogin } from '../hooks/useZkLogin';
 import { useZkLoginTransaction } from '../hooks/useZkLoginTransaction';
 import { buildMintPoapTx, getEvents } from '../sui/poap';
 import { POAPEvent } from '../types/poap';
@@ -49,7 +48,7 @@ export function MintButton({ onSuccess }: MintButtonProps) {
       let result;
       const tx = buildMintPoapTx(selectedEventId); // nonce not needed for wallet      
       if (isWalletConnected) {
-        result = await signAndExecuteTransaction({ transaction: tx });
+        result = await signAndExecuteTransaction({ transaction: tx, chain: 'sui:testnet' });
       } else if (isZkLoginReady) {
         result = await zkLoginTransaction.executeTransaction(tx);
       } else {

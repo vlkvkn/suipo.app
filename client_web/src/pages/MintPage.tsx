@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useCurrentWallet, useSuiClient } from '../contexts/WalletContext';
+import { useCurrentWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
-import { useZkLogin } from '../hooks/useZkLogin';
 import { useZkLoginTransaction } from '../hooks/useZkLoginTransaction';
 import { buildMintPoapTx } from '../sui/poap';
 
@@ -45,7 +44,7 @@ const MintPage = () => {
           if (isZkLoginConnected) {
             result = await zkLoginTransaction.executeTransaction(tx);
           } else {
-            result = await signAndExecuteTransaction({ transaction: tx });
+            result = await signAndExecuteTransaction({ transaction: tx, chain: 'sui:testnet' });
           }
           
           if (result) {

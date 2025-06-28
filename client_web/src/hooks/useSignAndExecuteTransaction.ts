@@ -1,16 +1,15 @@
 import { useMutation } from '@tanstack/react-query';
 import { Transaction } from '@mysten/sui/transactions';
-import { useWallet, useNetwork } from '../contexts/WalletContext';
+import { useWallet } from '../contexts/WalletContext';
 
 interface SignAndExecuteTransactionOptions {
   transaction: Transaction;
+  chain: 'sui:mainnet' | 'sui:testnet' | 'sui:devnet';
   requestType?: 'WaitForLocalExecution' | 'WaitForEffectsCert';
-  chain?: 'sui:mainnet' | 'sui:testnet' | 'sui:devnet';
 }
 
 export function useSignAndExecuteTransaction() {
   const { wallet, account } = useWallet();
-  const { network } = useNetwork();
 
   return useMutation({
     mutationFn: async ({ 
@@ -31,15 +30,12 @@ export function useSignAndExecuteTransaction() {
         transaction.setSender(account.address);
       }
 
-      // Use provided chain or default to current network
-      const chainId = chain || `sui:${network}`;
-
       // Sign and execute the transaction
       const result = await wallet.features['sui:signAndExecuteTransactionBlock'].signAndExecuteTransactionBlock({
         transactionBlock: transaction as any, // Cast to any to work around type mismatch
         account,
         requestType,
-        chain: chainId, // Add chain identifier
+        chain: chain, // Add chain identifier
       });
 
       return result;

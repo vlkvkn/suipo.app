@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button, DropdownMenu, Text, Flex, Badge } from '@radix-ui/themes';
 import { getWallets, Wallet, WalletWithRequiredFeatures } from '@mysten/wallet-standard';
-import { useWallet } from '../contexts/WalletContext';
-import { useZkLogin } from '../hooks/useZkLogin';
+import { useWallet, useZkLogin } from '../contexts/WalletContext';
 import { popularWallets } from '../config/wallets';
 import './ConnectButton.css';
 

@@ -26,15 +26,12 @@ export async function getPOAPs(suiClient: any, address: string): Promise<POAP[]>
       },
     });
 
-    console.log('Raw objects response:', objects);
-
     if (!objects.data || objects.data.length === 0) {
       console.log('No POAP objects found for address:', address);
       return [];
     }
 
     const poaps = objects.data.map((obj: any) => {
-      console.log('Processing object:', obj);
       const content = obj.data?.content as any;
       const fields = content?.fields || {};
 
@@ -71,8 +68,7 @@ export async function getEvents(suiClient: any): Promise<POAPEvent[]> {
       parentId: eventConfig.data.objectId,
     });
     const eventsList = await Promise.all(
-      dynamicFields.data.map(async (field: any, index: number) => {
-        console.log(`Processing field ${index}:`, field);
+      dynamicFields.data.map(async (field: any) => {
 
         const event = await suiClient.getObject({
           id: field.objectId,

@@ -143,6 +143,7 @@ export function EventManager() {
 
       const result = await signAndExecuteTransaction({
         transaction: tx,
+        chain: "sui:testnet"
       });
 
       if (result) {
