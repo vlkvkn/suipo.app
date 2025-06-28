@@ -9,12 +9,12 @@ const zkloginRoutes = require('./routes/zklogin');
 const app = express();
 const PORT = process.env.PORT || 8000;
 const ASSETS_PORT = process.env.ASSETS_PORT || 8001;
+const CORS_ORIGINS = process.env.CORS_ORIGINS;
+const BASE_URL = process.env.BASE_URL;
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS_ORIGINS ? 
-    process.env.CORS_ORIGINS.split(',') : 
-    ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:4173'],
+  origin: CORS_ORIGINS,
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -67,13 +67,13 @@ assetsApp.get('/health', (req, res) => {
 // Start main server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📁 Uploads available at: http://localhost:${PORT}/uploads/`);
-  console.log(`🌐 CORS origins: ${corsOptions.origin.join(', ')}`);
+  console.log(`📁 Uploads available at: ${BASE_URL}:${PORT}/uploads/`);
+  console.log(`🌐 CORS origins: ${CORS_ORIGINS}`);
 });
 
 // Start assets server
 assetsApp.listen(ASSETS_PORT, () => {
   console.log(`📁 Assets server running on port ${ASSETS_PORT}`);
-  console.log(`📁 Assets available at: http://localhost:${ASSETS_PORT}/`);
-  console.log(`📁 Configure assets.localhost to point to localhost:${ASSETS_PORT}`);
+  console.log(`📁 Assets available at: ${BASE_URL}:${ASSETS_PORT}/`);
+  console.log(`📁 Configure assets.localhost to point to ${BASE_URL}:${ASSETS_PORT}`);
 }); 
