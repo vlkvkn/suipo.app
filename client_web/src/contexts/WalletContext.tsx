@@ -9,6 +9,7 @@ import { generateNonce, generateRandomness } from '@mysten/sui/zklogin';
 import { setSalt } from '../api/zklogin';
 
 const WalletContext = createContext<ReturnType<typeof createWalletStore> | null>(null);
+const SuiClientContext = createContext<SuiClient | null>(null);
 
 interface WalletProviderProps {
   children: ReactNode;
@@ -19,24 +20,35 @@ interface WalletProviderProps {
 // Default storage and key
 const DEFAULT_STORAGE = typeof window !== 'undefined' && window.localStorage ? localStorage : {
   getItem: () => null,
-  setItem: () => {},
-  removeItem: () => {}
+  setItem: () => { },
+  removeItem: () => { }
 };
 const DEFAULT_STORAGE_KEY = 'sui-wallet:connection-info';
 
-export function WalletProvider({ 
-  children, 
-  autoConnect = true 
+export function WalletProvider({
+  children,
+  autoConnect = true
 }: WalletProviderProps) {
   const [, setClientOnly] = useState(false);
 
-    // Create wallet store
+  // Create a single SuiClient instance
+  const suiClient = useMemo(() => {
+    const network = 'testnet' as 'mainnet' | 'testnet' | 'devnet' | 'localnet';
+    const client = new SuiClient({
+      url: getFullnodeUrl(network),
+      network: network
+    });
+    console.log('SuiClient created once:', client);
+    return client;
+  }, []);
+
+  // Create wallet store
   const walletStore = useMemo(() => {
-    const wallets = getWallets().get().filter(wallet => 
-      wallet.features['standard:connect'] && 
+    const wallets = getWallets().get().filter(wallet =>
+      wallet.features['standard:connect'] &&
       wallet.features['sui:signTransactionBlock']
     ) as WalletWithRequiredFeatures[];
-    
+
     return createWalletStore({
       wallets,
       storage: DEFAULT_STORAGE as Storage,
@@ -53,8 +65,8 @@ export function WalletProvider({
   // Listen for wallet registry changes
   useEffect(() => {
     const handleWalletRegistryChange = () => {
-      const wallets = getWallets().get().filter(wallet => 
-        wallet.features['standard:connect'] && 
+      const wallets = getWallets().get().filter(wallet =>
+        wallet.features['standard:connect'] &&
         wallet.features['sui:signTransactionBlock']
       ) as WalletWithRequiredFeatures[];
       walletStore.getState().setWalletRegistered(wallets);
@@ -71,11 +83,11 @@ export function WalletProvider({
 
     const handleWalletEvent = (event: any) => {
       console.log('Wallet event:', event);
-      
+
       if (event.name === 'disconnect') {
         walletStore.getState().setWalletDisconnected();
       }
-      
+
       if (event.name === 'accountChange') {
         walletStore.getState().updateWalletAccounts(event.data || []);
       }
@@ -93,9 +105,11 @@ export function WalletProvider({
   }, []);
 
   return (
-    <WalletContext.Provider value={walletStore}>
-      {children}
-    </WalletContext.Provider>
+    <SuiClientContext.Provider value={suiClient}>
+      <WalletContext.Provider value={walletStore}>
+        {children}
+      </WalletContext.Provider>
+    </SuiClientContext.Provider>
   );
 }
 
@@ -112,7 +126,7 @@ export function useWallet() {
 
   const connect = async (selectedWallet?: WalletWithRequiredFeatures) => {
     store.getState().setConnectionStatus('connecting');
-    
+
     try {
       let walletToConnect: WalletWithRequiredFeatures;
 
@@ -130,7 +144,7 @@ export function useWallet() {
       }
 
       const connectResult = await walletToConnect.features['standard:connect'].connect();
-      
+
       const connectedSuiAccounts = connectResult.accounts.filter(
         (account) => account.chains.some((chain) => chain.split(':')[0] === 'sui')
       );
@@ -140,7 +154,7 @@ export function useWallet() {
       }
 
       const selectedAccount = connectedSuiAccounts[0];
-      
+
       store.getState().setWalletConnected(
         walletToConnect,
         connectedSuiAccounts,
@@ -165,7 +179,6 @@ export function useWallet() {
     wallet,
     connecting,
     connected,
-    network: 'testnet' as const,
     connect,
     disconnect
   };
@@ -177,14 +190,12 @@ export function useCurrentWallet() {
 }
 
 export function useSuiClient() {
-  // Create a stable client instance using useMemo
-  return useMemo(() => new SuiClient({ url: getFullnodeUrl(useNetwork()) }), []);
+  const suiClient = useContext(SuiClientContext);
+  if (!suiClient) {
+    throw new Error('useSuiClient must be used within a WalletProvider');
+  }
+  return suiClient;
 }
-
-function useNetwork() {
-  const network = 'testnet' as 'mainnet' | 'testnet' | 'devnet' | 'localnet';
-  return network;
-} 
 
 export function useZkLogin() {
 
@@ -206,7 +217,7 @@ export function useZkLogin() {
   const logout = useCallback(() => {
 
     localStorage.removeItem("zk_storage");
-    
+
     store.setState(prev => ({
       ...prev,
       zk_isAuthenticated: false,
@@ -218,7 +229,7 @@ export function useZkLogin() {
       zk_randomness: "",
       zk_ephemeralKeyPair: undefined,
     }));
-    
+
   }, []);
 
   // Handle OAuth callback
@@ -271,7 +282,7 @@ export function useZkLogin() {
       const zk_lokalstorage = {
         randomness: generateRandomness(),
         maxEpoch: Number(epoch) + 2,
-        secretkey: ephemeralKeyPair.getSecretKey(),        
+        secretkey: ephemeralKeyPair.getSecretKey(),
       }
 
       localStorage.setItem("zk_storage", JSON.stringify(zk_lokalstorage));
