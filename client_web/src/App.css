@@ -1,0 +1,50 @@
+/* Global app container with unified light background */
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fafdff 0%, #eaf6ff 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header styling */
+.app-header {
+  background: rgba(255, 255, 255, 0.55); /* glass effect */
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1.5px solid #4DA2FF;
+  z-index: 100;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 2px 12px rgba(77, 162, 255, 0.07);
+}
+
+/* Main content area */
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure all pages inherit the background */
+.app-main > * {
+  flex: 1;
+}
+
+/* Override any existing background colors */
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #fafdff 0%, #eaf6ff 100%);
+  min-height: 100vh;
+  color: #222;
+}
+
+#root {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fafdff 0%, #eaf6ff 100%);
+}
+
+/* Accent color utility */
+:root {
+  --accent-color: #4DA2FF;
+} 

@@ -3,14 +3,16 @@
   justify-content: center;
   align-items: center;
   padding: 2rem;
+  color: #222;
+  background: none;
 }
 
 .poap-card-message {
-  color: #666;
+  color: #4DA2FF;
 }
 
 .poap-card-error {
-  color: #dc2626;
+  color: #ef4444;
 }
 
 .poap-card-wrapper {
@@ -18,20 +20,44 @@
 }
 
 .poap-card-list {
+  display: contents;
+}
+
+.poap-card {
+  height: 100%;
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 1rem;
-  overflow-x: auto;
-  padding-bottom: 1rem;
+  flex-direction: column;
 }
 
-.poap-card-card {
-  flex: 0 0 auto;
-  width: 300px;
-  background-color: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+.poap-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: #fafdff;
+}
+
+.poap-card-content {
+  padding: 1rem;
+  background: #fafdff;
+}
+
+.poap-card-content h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #2586d1;
+  letter-spacing: 0.5px;
+}
+
+.poap-card-content p {
+  color: #26344a;
+  margin-bottom: 0.5rem;
+}
+
+.poap-card-event {
+  color: #4DA2FF;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .poap-card-image-container {
@@ -40,52 +66,23 @@
   padding-top: 100%;
 }
 
-.poap-card-image {
-  max-width: 300px;
-  max-height: 300px;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
-.poap-card-content {
-  padding: 1rem;
-}
-
 .poap-card-title {
   font-size: 1.25rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
+  color: #2586d1;
 }
 
 .poap-card-event-id {
-  color: #666;
+  color: #4DA2FF;
 }
 
-.poap-card-image-container {
-  position: relative;
+.poap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
   width: 100%;
-  padding-top: 100%;
-}
-
-.poap-card-image {
-  max-width: 300px;
-  max-height: 300px;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
-.poap-card-content {
-  padding: 1rem;
-}
-
-.poap-card-title {
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.poap-card-event-id {
-  color: #666;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: stretch;
 } 

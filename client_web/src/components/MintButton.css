@@ -8,18 +8,29 @@
 .mint-button-select {
   padding: 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
-  background-color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
   font-size: 1rem;
-  color: #1f2937;
+  color: white;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+}
+
+.mint-button-select::placeholder {
+  color: #94a3b8;
 }
 
 .mint-button-select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mint-button-select option {
+  background: #1a1a2e;
+  color: white;
 }
 
 .mint-button-button {
@@ -33,16 +44,18 @@
 }
 
 .mint-button-button-enabled {
-  background-color: #2563eb;
+  background: linear-gradient(45deg, #6366f1, #8b5cf6);
   color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .mint-button-button-enabled:hover {
-  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
 }
 
 .mint-button-button-disabled {
-  background-color: #9ca3af;
-  color: white;
+  background: rgba(156, 163, 175, 0.3);
+  color: #94a3b8;
   cursor: not-allowed;
 } 

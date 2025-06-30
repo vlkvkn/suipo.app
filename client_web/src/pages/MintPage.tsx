@@ -4,6 +4,7 @@ import { useCurrentWallet, useSuiClient, useZkLogin } from '../contexts/WalletCo
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
 import { useZkLoginTransaction } from '../hooks/useZkLoginTransaction';
 import { buildMintPoapTx } from '../sui/poap';
+import './MintPage.css';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -64,23 +65,25 @@ const MintPage = () => {
   }, [isConnected, eventKey]);
 
   if (!eventKey) {
-    return <div style={{padding: 32}}>No event specified for minting.</div>;
+    return <div className="mint-page-container">No event specified for minting.</div>;
   }
 
   if (!isConnected) {
-    return <div style={{padding: 32}}>
-      <div>Please connect your wallet to mint POAP.</div>
-    </div>;
+    return (
+      <div className="mint-page-container">
+        <div>Please connect your wallet to mint POAP.</div>
+      </div>
+    );
   }
 
   if (status === 'minting') {
-    return <div style={{padding: 32}}>Minting POAP...</div>;
+    return <div className="mint-page-container">Minting POAP...</div>;
   }
   if (status === 'success') {
-    return <div style={{padding: 32, color: 'green'}}>POAP minted successfully!</div>;
+    return <div className="mint-page-container success">POAP minted successfully!</div>;
   }
   if (status === 'error') {
-    return <div style={{padding: 32, color: 'red'}}>Mint error: {error}</div>;
+    return <div className="mint-page-container error">Mint error: {error}</div>;
   }
 
   return null;

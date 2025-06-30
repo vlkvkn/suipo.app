@@ -1,0 +1,18 @@
+.mint-page-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: white;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.mint-page-container.success {
+  color: #10b981;
+}
+
+.mint-page-container.error {
+  color: #ef4444;
+} 
