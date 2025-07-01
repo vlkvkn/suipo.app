@@ -1,5 +1,5 @@
 import { Box, Flex } from "@radix-ui/themes";
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { EventManagerPage } from './pages/EventManagerPage';
 import MintPage from './pages/MintPage';
@@ -14,12 +14,13 @@ import { useEffect } from 'react';
 function App() {
   const { isAuthenticated, userAddress } = useZkLogin();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    if (isAuthenticated && userAddress) {
+    if (isAuthenticated && userAddress && location.pathname === '/') {
       navigate('/poaps', { replace: true });
     }
-  }, [isAuthenticated, userAddress, navigate]);
+  }, [isAuthenticated, userAddress, navigate, location.pathname]);
 
   return (
     <div className="app-container">

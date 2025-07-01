@@ -7,6 +7,7 @@ import { createWalletStore } from './walletStore';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { generateNonce, generateRandomness } from '@mysten/sui/zklogin';
 import { setSalt } from '../api/zklogin';
+import { useLocation } from 'react-router-dom';
 
 const WalletContext = createContext<ReturnType<typeof createWalletStore> | null>(null);
 const SuiClientContext = createContext<SuiClient | null>(null);
@@ -103,6 +104,66 @@ export function WalletProvider({
       }
     };
   }, []);
+
+  // Automatic wallet reconnection if data is present in localStorage
+  useEffect(() => {
+    const state = walletStore.getState();
+    if (
+      state.lastConnectedWalletName &&
+      state.lastConnectedAccountAddress &&
+      state.connectionStatus !== 'connected'
+    ) {
+      const wallet = state.wallets.find(
+        w => (w.id ?? w.name) === state.lastConnectedWalletName
+      );
+      if (wallet) {
+        // Try to reconnect to the wallet automatically
+        wallet.features['standard:connect'].connect().then(connectResult => {
+          const connectedSuiAccounts = connectResult.accounts.filter(
+            (account) => account.chains.some((chain) => chain.split(':')[0] === 'sui')
+          );
+          const selectedAccount = connectedSuiAccounts.find(
+            acc => acc.address === state.lastConnectedAccountAddress
+          ) || connectedSuiAccounts[0];
+          walletStore.getState().setWalletConnected(
+            wallet,
+            connectedSuiAccounts,
+            selectedAccount,
+            []
+          );
+        }).catch(() => {
+          walletStore.getState().setConnectionStatus('disconnected');
+        });
+      }
+    }
+  }, [walletStore]);
+
+  // Automatic zkLogin reconnection if data is present in localStorage
+  useEffect(() => {
+    try {
+      const zkStorage = localStorage.getItem('zk_storage');
+      if (zkStorage) {
+        const zkData = JSON.parse(zkStorage);
+        if (zkData) {
+          const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(zkData.secretkey);
+          // If not already authenticated, restore zkLogin state
+          if (!walletStore.getState().zk_isAuthenticated) {
+            walletStore.setState(prev => ({
+              ...prev,
+              zk_ephemeralKeyPair: ephemeralKeyPair,
+              zk_maxEpoch: zkData.maxEpoch,
+              zk_randomness: zkData.randomness,
+              zk_isAuthenticated: true,
+              zk_userAddress: zkData.userAddress,
+              zk_jwt: zkData.jwt,
+            }));
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }, [walletStore]);
 
   return (
     <SuiClientContext.Provider value={suiClient}>
@@ -212,6 +273,9 @@ export function useZkLogin() {
   const randomness = useStore(store, (state) => state.zk_randomness);
   const isLoading = useStore(store, (state) => state.zk_isLoading);
 
+  const location = useLocation();  
+  const redirectUrl = import.meta.env.VITE_APP_DOMAIN + location.pathname;
+
   const suiClient = useSuiClient();
 
   const logout = useCallback(() => {
@@ -245,6 +309,15 @@ export function useZkLogin() {
           const saltResponse = await setSalt(idToken);
           const zk_lokalstorageJSON = JSON.parse(localStorage.getItem("zk_storage") as string);
           const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(zk_lokalstorageJSON.secretkey);
+
+          // Save all zkLogin data to localStorage
+          localStorage.setItem("zk_storage", JSON.stringify({
+            randomness: zk_lokalstorageJSON.randomness,
+            maxEpoch: zk_lokalstorageJSON.maxEpoch,
+            secretkey: zk_lokalstorageJSON.secretkey,
+            userAddress: saltResponse.userAddress,
+            jwt: idToken
+          }));
 
           store.setState(prev => ({
             ...prev,
@@ -294,7 +367,7 @@ export function useZkLogin() {
         zk_ephemeralKeyPair: ephemeralKeyPair,
       }));
 
-      const oauthUrl = buildGoogleOAuthUrl(store);
+      const oauthUrl = buildGoogleOAuthUrl(redirectUrl,store);
       window.location.href = oauthUrl;
     } catch (error) {
       console.error('Failed to build OAuth URL:', error);
@@ -325,22 +398,21 @@ function generateState(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-function buildGoogleOAuthUrl(WalletContext: ReturnType<typeof createWalletStore>): string {
-  const { zk_randomness, zk_maxEpoch, zk_ephemeralKeyPair } = WalletContext.getState();
+function buildGoogleOAuthUrl(redirectUrl:string,WalletContext: ReturnType<typeof createWalletStore>): string {
 
+  const { zk_randomness, zk_maxEpoch, zk_ephemeralKeyPair } = WalletContext.getState();
   const GOOGLE_OAUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'; //TODO: move to env or config
 
   // Generate state parameter for security
   const state = generateState();
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
 
   let nonce = generateNonce((zk_ephemeralKeyPair as Ed25519Keypair).getPublicKey(), zk_maxEpoch, zk_randomness as string);
 
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: redirectUri,
+    redirect_uri: redirectUrl,
     response_type: 'id_token',
     scope: 'openid email profile',
     nonce: nonce,

@@ -4,7 +4,6 @@ import { getWallets, Wallet, WalletWithRequiredFeatures } from '@mysten/wallet-s
 import { useWallet, useZkLogin } from '../contexts/WalletContext';
 import { popularWallets } from '../config/wallets';
 import './ConnectButton.css';
-import { useNavigate } from 'react-router-dom';
 
 interface WalletInfo {
   name: string;
@@ -21,7 +20,6 @@ export function ConnectButton() {
   const { isAuthenticated, isLoading: zkLoginLoading, userAddress, login: zkLogin, logout: zkLogout } = useZkLogin();
   const [isOpen, setIsOpen] = useState(false);
   const [availableWallets, setAvailableWallets] = useState<WalletInfo[]>([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Get available wallets and check installation status
@@ -128,7 +126,6 @@ export function ConnectButton() {
       // Handle zkLogin
       try {
         await zkLogin();
-        navigate('/poaps');
       } catch (error) {
         console.error('Failed to connect zkLogin:', error);
         alert('Failed to connect zkLogin. Please try again.');
@@ -147,7 +144,6 @@ export function ConnectButton() {
     try {
       // Cast to WalletWithRequiredFeatures for the connect function
       await connect(walletInfo.wallet as WalletWithRequiredFeatures);
-      navigate('/poaps');
     } catch (error) {
       console.error('Failed to connect wallet:', error);
       alert('Failed to connect wallet. Please try again.');
