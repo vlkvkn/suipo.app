@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Zap, Shield, Users, Star } from 'lucide-react';
+import { Zap, Users, Star, Shield } from 'lucide-react';
 import './Hero.css';
 
 export function Hero() {
@@ -69,7 +69,7 @@ export function Hero() {
         {/* Main heading */}
         <motion.div className="hero-header" variants={itemVariants}>
           <motion.h1 className="hero-title">
-            Collect your attendance!
+            Collect your Attendance!
           </motion.h1>
           <motion.p className="hero-subtitle" variants={itemVariants}>
             Create and collect unique digital event badges
@@ -80,28 +80,18 @@ export function Hero() {
           </motion.p>
         </motion.div>
 
-        {/* CTA Buttons */}
-        {/* <motion.div className="hero-actions" variants={itemVariants}>
-          <motion.button
-            className="cta-button primary"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Zap size={20} />
-            Start Creating
-            <ArrowRight size={20} />
-          </motion.button>
-          
-          <motion.div
-            className="connect-button-wrapper"
-            whileHover={{ scale: 1.02 }}
-          >
-            <ConnectButton />
-          </motion.div>
-        </motion.div> */}
-
         {/* Features */}
         <motion.div className="hero-features" variants={itemVariants}>
+
+          <motion.div className="feature-card"
+            whileHover={{ y: -5, scale: 1.02 }} 
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <Star className="feature-icon" />
+            <h3>Uniqueness</h3>
+            <p>Exclusive digital collections</p>
+          </motion.div>
+          
           <motion.div 
             className="feature-card"
             whileHover={{ y: -5, scale: 1.02 }}
@@ -132,15 +122,6 @@ export function Hero() {
             <p>Connect via zkLogin</p>
           </motion.div>
 
-          <motion.div 
-            className="feature-card"
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <Star className="feature-icon" />
-            <h3>Uniqueness</h3>
-            <p>Exclusive digital collections</p>
-          </motion.div>
         </motion.div>
 
         {/* Stats */}

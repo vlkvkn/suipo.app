@@ -136,8 +136,10 @@
 }
 
 .feature-card {
-  background: linear-gradient(135deg, #fafdff 70%, #e3f3ff 100%);
-  border: 2px solid #b8e0ff;
+  background: linear-gradient(135deg, rgba(250, 253, 255, 0.55) 70%, rgba(227, 243, 255, 0.55) 100%);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 2px solid rgba(184, 224, 255, 0.6);
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(77, 162, 255, 0.13), 0 1.5px 6px rgba(77, 162, 255, 0.10);
   padding: 2rem;
@@ -147,9 +149,9 @@
 
 .feature-card:hover {
   box-shadow: 0 8px 32px rgba(77, 162, 255, 0.22), 0 2px 12px rgba(77, 162, 255, 0.18);
-  border-color: #4DA2FF;
+  border-color: rgba(77, 162, 255, 0.8);
   transform: translateY(-4px) scale(1.025);
-  background: linear-gradient(135deg, #e3f3ff 60%, #fafdff 100%);
+  background: linear-gradient(135deg, rgba(227, 243, 255, 0.7) 60%, rgba(250, 253, 255, 0.7) 100%);
 }
 
 .feature-icon {
