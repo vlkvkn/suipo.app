@@ -1,10 +1,10 @@
 .mint-page-container {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: white;
   font-size: 1.1rem;
   text-align: center;
 }
@@ -15,4 +15,21 @@
 
 .mint-page-container.error {
   color: #ef4444;
+} 
+
+.poap-image {
+  margin-top: 24px;
+  max-width: 320px;
+  width: 100%;
+  border-radius: 16px;
+}
+
+.poap-link {
+  margin-top: 24px;
+}
+
+.poap-link a {
+  color: #0070f3;
+  text-decoration: underline;
+  font-weight: 500;
 } 

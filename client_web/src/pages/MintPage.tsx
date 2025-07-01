@@ -78,7 +78,14 @@ const MintPage = () => {
     return <div className="mint-page-container">Minting POAP...</div>;
   }
   if (status === 'success') {
-    return <div className="mint-page-container success">POAP minted successfully!</div>;
+    return (
+      <div className="mint-page-container success">
+        <div>POAP minted successfully!</div>
+        <div>
+          <a href="/poaps" className='poap-link'>Go to your POAPs</a>
+        </div>
+      </div>
+    );
   }
   if (status === 'error') {
     return <div className="mint-page-container error">Mint error: {error}</div>;
