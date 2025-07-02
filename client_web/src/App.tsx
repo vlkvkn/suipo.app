@@ -1,5 +1,5 @@
 import { Box, Flex } from "@radix-ui/themes";
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { EventManagerPage } from './pages/EventManagerPage';
 import MintPage from './pages/MintPage';
