@@ -4,6 +4,7 @@ import { getWallets, Wallet, WalletWithRequiredFeatures } from '@mysten/wallet-s
 import { useWallet, useZkLogin } from '../contexts/WalletContext';
 import { popularWallets } from '../config/wallets';
 import './ConnectButton.css';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface WalletInfo {
   name: string;
@@ -20,6 +21,8 @@ export function ConnectButton() {
   const { isAuthenticated, isLoading: zkLoginLoading, userAddress, login: zkLogin, logout: zkLogout } = useZkLogin();
   const [isOpen, setIsOpen] = useState(false);
   const [availableWallets, setAvailableWallets] = useState<WalletInfo[]>([]);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Get available wallets and check installation status
@@ -122,6 +125,7 @@ export function ConnectButton() {
   }, [availableWallets]);
 
   const handleConnect = async (walletInfo: WalletInfo) => {
+    
     if (walletInfo.type === 'zklogin') {
       // Handle zkLogin
       try {
@@ -144,6 +148,9 @@ export function ConnectButton() {
     try {
       // Cast to WalletWithRequiredFeatures for the connect function
       await connect(walletInfo.wallet as WalletWithRequiredFeatures);
+      if (location.pathname === "/") {
+        navigate('/poaps', { replace: true });
+      }
     } catch (error) {
       console.error('Failed to connect wallet:', error);
       alert('Failed to connect wallet. Please try again.');
@@ -151,11 +158,8 @@ export function ConnectButton() {
   };
 
   const handleDisconnect = () => {
-    if (isAuthenticated) {
-      zkLogout();
-    } else {
-      disconnect();
-    }
+    zkLogout();
+    disconnect();
     setIsOpen(false);
   };
 

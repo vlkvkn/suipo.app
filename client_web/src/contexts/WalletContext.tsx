@@ -273,8 +273,12 @@ export function useZkLogin() {
   const randomness = useStore(store, (state) => state.zk_randomness);
   const isLoading = useStore(store, (state) => state.zk_isLoading);
 
-  const location = useLocation();  
-  const redirectUrl = import.meta.env.VITE_APP_DOMAIN + location.pathname;
+  let locpathname = useLocation().pathname;  
+  if (locpathname === "/" || locpathname === "/#") {
+    locpathname = "/poaps"
+  }
+  const redirectUrl = import.meta.env.VITE_APP_DOMAIN + locpathname;
+  console.log(redirectUrl);
 
   const suiClient = useSuiClient();
 

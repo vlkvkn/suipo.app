@@ -8,19 +8,8 @@ import { ConnectButton } from './components/ConnectButton';
 import { BASE_URL } from './config';
 import './App.css';
 import PoapsPage from './pages/PoapsPage';
-import { useZkLogin } from './contexts/WalletContext';
-import { useEffect } from 'react';
 
 function App() {
-  const { isAuthenticated, userAddress } = useZkLogin();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    if (isAuthenticated && userAddress && location.pathname === '/') {
-      navigate('/poaps', { replace: true });
-    }
-  }, [isAuthenticated, userAddress, navigate, location.pathname]);
 
   return (
     <div className="app-container">
