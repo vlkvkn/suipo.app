@@ -277,8 +277,7 @@ export function useZkLogin() {
   if (locpathname === "/" || locpathname === "/#") {
     locpathname = "/poaps"
   }
-  const redirectUrl = import.meta.env.VITE_APP_DOMAIN + locpathname;
-  console.log(redirectUrl);
+  const redirectUrl = import.meta.env.VITE_APP_DOMAIN + locpathname + window.location.search.toString(); //TODO remake with state
 
   const suiClient = useSuiClient();
 
