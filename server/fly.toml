@@ -10,7 +10,6 @@ primary_region = 'ams'
   dockerfile = 'Dockerfile'
 
 [env]
-  ASSETS_PORT = '8001'
   PORT = '8000'
 
 [http_service]
