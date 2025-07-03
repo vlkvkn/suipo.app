@@ -325,9 +325,9 @@ export function EventManager() {
                   </div>
                 </div>
                 <div style={{marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                  <QRCode value={`${BASE_URL}/mint?event=${encodeURIComponent(event.name)}`} size={64} />
+                  <QRCode value={`${BASE_URL}/mint?mintkey=${encodeURIComponent(event.name)}`} size={64} />
                   {/* Direct mint link for mobile or desktop users */}
-                  <a href={`${BASE_URL}/mint?event=${encodeURIComponent(event.name)}`} target="_blank"
+                  <a href={`${BASE_URL}/mint?mintkey=${encodeURIComponent(event.name)}`} target="_blank"
                     rel="noopener noreferrer" style={{ marginTop: 8, fontSize: '0.85rem', color: '#2563eb', wordBreak: 'break-all' }}
                   >Mint POAP</a>
                 </div>

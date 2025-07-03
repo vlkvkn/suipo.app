@@ -12,7 +12,7 @@ function useQuery() {
 
 const MintPage = () => {
   const query = useQuery();
-  const eventKey = query.get('event') || '';
+  const mintkey = query.get('mintkey') || '';
   const wallet = useCurrentWallet();
   const { isAuthenticated, userAddress, ephemeralKeyPair, jwt, maxEpoch, randomness } = useZkLogin();
   const [status, setStatus] = useState<'idle'|'minting'|'success'|'error'>('idle');
@@ -36,10 +36,10 @@ const MintPage = () => {
 
   useEffect(() => {
     async function handleMint() {
-      if (isConnected && eventKey) {
+      if (isConnected && mintkey) {
         setStatus('minting');
         try {
-          const tx = buildMintPoapTx(eventKey);
+          const tx = buildMintPoapTx(mintkey);
           
           let result;
           if (isZkLoginConnected) {
@@ -62,9 +62,9 @@ const MintPage = () => {
     }
     handleMint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, eventKey]);
+  }, [isConnected, mintkey]);
 
-  if (!eventKey) {
+  if (!mintkey) {
     return <div style={{padding: 32}}>No event specified for minting.</div>;
   }
 
