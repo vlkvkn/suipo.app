@@ -14,8 +14,9 @@ module poap::nft {
     struct PoapNFT has key, store {
         id: UID,
         name: String,
+        event_key: String,
         description: String,
-        img_url: String,
+        image_path: String,
         created_by: address,
         created_at: u64,
     }
@@ -31,10 +32,10 @@ module poap::nft {
     /// Keys and values are set in the initializer but could also be
     /// set after publishing if a `Publisher` object was created.
     fun init(otw: NFT, ctx: &mut TxContext) {
-        let keys = vector[
+        let keys = vector[           
             utf8(b"name"),
             utf8(b"link"),
-            utf8(b"image_path"),
+            utf8(b"image_url"),
             utf8(b"description"),
             utf8(b"project_url"),
             utf8(b"creator"),
@@ -42,11 +43,11 @@ module poap::nft {
 
         let values = vector[
             utf8(b"{name}"),
-            utf8(b"https://suipo.app/events/{id}"),
-            utf8(b"https://suipo.app/images/{image_path}"),
+            utf8(b"https://suipo.app/events/{event_key}"),
+            utf8(b"https://assets.suipo.app/{image_path}"),
             utf8(b"{description}"),
             utf8(b"https://suipo.app/"),
-            utf8(b"Sui POAP")
+            utf8(b"Sui POAP"),
         ];
 
         // Claim the `Publisher` for the package!
@@ -66,18 +67,18 @@ module poap::nft {
 
     public(friend) fun new(
         name: String,
+        event_key: String,
         description: String,
         image_path: String,
         clock: &Clock,
         ctx: &mut TxContext,
     ): PoapNFT {
-        let img_url = string::utf8(b"https://suipo.app/images/");
-        string::append(&mut img_url, image_path);
         PoapNFT {
             id: object::new(ctx),
             name,
+            event_key,
             description,
-            img_url: img_url,
+            image_path,
             created_by: tx_context::sender(ctx),
             created_at: clock::timestamp_ms(clock),
         }

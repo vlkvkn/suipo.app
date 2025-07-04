@@ -13,6 +13,7 @@ module poap::issuer {
     const EAlreadyInWhitelist: u64 = 1003;
     const ENotInWhitelist: u64 = 1004;
     const ENotCreator: u64 = 1005;
+    const EAlreadyVisited: u64 = 1006;
 
     use poap::nft::{Self};
 
@@ -25,6 +26,7 @@ module poap::issuer {
 
     struct Event has key, store {
         id: UID,
+        name: String,
         description: String,
         img_url: String,
         poap_name: String,
@@ -81,6 +83,7 @@ module poap::issuer {
     public fun create_event(
         config: &mut EventConfig,
         event_key: String,
+        event_name: String,
         description: String,
         img_path: String,
         poap_name: String,
@@ -97,11 +100,12 @@ module poap::issuer {
             ENotAuthorized
         );
 
-        let img_url = string::utf8(b"https://suipo.app/images/");
+        let img_url = string::utf8(b"https://assets.suipo.app/");
         string::append(&mut img_url, img_path);
 
         let event = Event {
             id: object::new(ctx),
+            name: event_name,
             description,
             img_url: img_url,
             poap_name,
@@ -122,9 +126,13 @@ module poap::issuer {
     ) {
         let event: &mut Event = dof::borrow_mut(&mut config.id, event_key);
         assert!(clock::timestamp_ms(clock) < event.expired_at, EExpiredAt);
-        vector::push_back(&mut event.visitors, tx_context::sender(ctx));
-        let nft = nft::new(event.poap_name, event.poap_description, event.poap_img_path, clock, ctx);
-        transfer::public_transfer(nft, tx_context::sender(ctx));
+        
+        let sender = tx_context::sender(ctx);
+        assert!(!vector::contains(&event.visitors, &sender), EAlreadyVisited);
+        
+        vector::push_back(&mut event.visitors, sender);
+        let nft = nft::new(event.poap_name, event_key, event.poap_description, event.poap_img_path, clock, ctx);
+        transfer::public_transfer(nft, sender);
     }
 
 }
