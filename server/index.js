@@ -9,7 +9,6 @@ const zkloginRoutes = require('./routes/zklogin');
 const app = express();
 const PORT = process.env.PORT || 8000;
 const CORS_ORIGINS = process.env.CORS_ORIGINS;
-const BASE_URL = process.env.BASE_URL;
 
 // CORS configuration
 const corsOptions = {
@@ -22,9 +21,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/upload', uploadRoutes);
@@ -49,6 +45,5 @@ app.use('*', (req, res) => {
 // Start main server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📁 Uploads available at: ${BASE_URL}/uploads/`);
   console.log(`🌐 CORS origins: ${CORS_ORIGINS}`);
 });

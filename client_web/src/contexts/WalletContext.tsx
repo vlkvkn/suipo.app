@@ -1,20 +1,19 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useLayoutEffect, useCallback } from 'react';
-import { SuiClient } from '@mysten/sui/client';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { WalletWithRequiredFeatures, getWallets } from '@mysten/wallet-standard';
-import { getFullnodeUrl } from '@mysten/sui/client';
 import { useStore } from 'zustand';
 import { createWalletStore } from './walletStore';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { generateNonce, generateRandomness } from '@mysten/sui/zklogin';
 import { setSalt } from '../api/zklogin';
 import { useLocation } from 'react-router-dom';
+import { SUI_NETWORK } from '../config';
 
 const WalletContext = createContext<ReturnType<typeof createWalletStore> | null>(null);
 const SuiClientContext = createContext<SuiClient | null>(null);
 
 interface WalletProviderProps {
   children: ReactNode;
-  defaultNetwork?: 'mainnet' | 'testnet' | 'devnet' | 'localnet';
   autoConnect?: boolean;
 }
 
@@ -34,10 +33,9 @@ export function WalletProvider({
 
   // Create a single SuiClient instance
   const suiClient = useMemo(() => {
-    const network = 'testnet' as 'mainnet' | 'testnet' | 'devnet' | 'localnet';
     const client = new SuiClient({
-      url: getFullnodeUrl(network),
-      network: network
+      url: getFullnodeUrl(SUI_NETWORK),
+      network: SUI_NETWORK
     });
     console.log('SuiClient created once:', client);
     return client;

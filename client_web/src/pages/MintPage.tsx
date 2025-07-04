@@ -71,7 +71,7 @@ const MintPage = () => {
           if (isZkLoginConnected) {
             result = await zkLoginTransaction.executeTransaction(tx);
           } else {
-            result = await signAndExecuteTransaction({ transaction: tx, chain: 'sui:mainnet' });
+            result = await signAndExecuteTransaction({ transaction: tx });
           }
           
           if (result) {

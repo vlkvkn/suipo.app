@@ -2,7 +2,7 @@ export const PACKAGE_ID = import.meta.env.VITE_SUI_POAPCONTRACT_PACKAGE_ID as st
 export const EVENT_CONFIG_ID = import.meta.env.VITE_SUI_POAPCONTRACT_EVENT_CONFIG_ID as string;
 export const CLOCK_ID = "0x6";
 
-export const SUI_NETWORK = (import.meta.env.VITE_SUI_NETWORK as "mainnet" | "testnet" | "devnet" | "localnet") ?? "testnet";
+export const SUI_NETWORK = import.meta.env.VITE_SUI_NETWORK as 'mainnet' | 'testnet' | 'devnet' | 'localnet' || "testnet";
 export const BASE_URL = import.meta.env.VITE_APP_DOMAIN || "https://suipo.app";
 
 // Server configuration

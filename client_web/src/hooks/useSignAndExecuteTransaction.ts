@@ -1,10 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import { Transaction } from '@mysten/sui/transactions';
 import { useWallet } from '../contexts/WalletContext';
+import { SUI_NETWORK } from '../config';
 
 interface SignAndExecuteTransactionOptions {
   transaction: Transaction;
-  chain: 'sui:mainnet' | 'sui:testnet' | 'sui:devnet';
   requestType?: 'WaitForLocalExecution' | 'WaitForEffectsCert';
 }
 
@@ -14,8 +14,7 @@ export function useSignAndExecuteTransaction() {
   return useMutation({
     mutationFn: async ({ 
       transaction, 
-      requestType = 'WaitForLocalExecution',
-      chain
+      requestType = 'WaitForLocalExecution'
     }: SignAndExecuteTransactionOptions) => {
       if (!wallet || !account) {
         throw new Error('Wallet not connected');
@@ -35,7 +34,7 @@ export function useSignAndExecuteTransaction() {
         transactionBlock: transaction as any, // Cast to any to work around type mismatch
         account,
         requestType,
-        chain: chain, // Add chain identifier
+        chain: `sui:${SUI_NETWORK}`,
       });
 
       return result;
