@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useCurrentWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
 import { useZkLoginTransaction } from '../hooks/useZkLoginTransaction';
-import { buildMintPoapTx } from '../sui/poap';
+import { buildMintPoapTx, getPOAPs } from '../sui/poap';
 import './MintPage.css';
 
 function useQuery() {
@@ -19,6 +19,8 @@ const MintPage = () => {
   const [error, setError] = useState<string>('');
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
+  const [alreadyMinted, setAlreadyMinted] = useState(false);
+  const [checking, setChecking] = useState(true);
 
    // Always create zkLogin transaction hook, but only use it when connected
    const zkLoginTransaction = useZkLoginTransaction({
@@ -35,8 +37,32 @@ const MintPage = () => {
   const isZkLoginConnected = isAuthenticated && userAddress;
 
   useEffect(() => {
-    async function handleMint() {
+    async function checkAlreadyMinted() {
       if (isConnected && mintkey) {
+        setChecking(true);
+        try {
+          const address = wallet?.accounts[0]?.address || userAddress || '';
+          const userPoaps = await getPOAPs(suiClient, address);
+          const hasPoap = userPoaps.some(poap => poap.eventKey === mintkey);
+          setAlreadyMinted(hasPoap);
+        } catch (e) {
+          // Could not check, allow mint attempt
+          setAlreadyMinted(false);
+        } finally {
+          setChecking(false);
+        }
+      } else {
+        setAlreadyMinted(false);
+        setChecking(false);
+      }
+    }
+    checkAlreadyMinted();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mintkey]);
+
+  useEffect(() => {
+    async function handleMint() {
+      if (isConnected && mintkey && !alreadyMinted) {
         setStatus('minting');
         try {
           const tx = buildMintPoapTx(mintkey);
@@ -45,7 +71,7 @@ const MintPage = () => {
           if (isZkLoginConnected) {
             result = await zkLoginTransaction.executeTransaction(tx);
           } else {
-            result = await signAndExecuteTransaction({ transaction: tx, chain: 'sui:testnet' });
+            result = await signAndExecuteTransaction({ transaction: tx, chain: 'sui:mainnet' });
           }
           
           if (result) {
@@ -62,7 +88,7 @@ const MintPage = () => {
     }
     handleMint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, mintkey]);
+  }, [isConnected, mintkey, alreadyMinted]);
 
   if (!mintkey) {
     return <div style={{padding: 32}}>No event specified for minting.</div>;
@@ -74,6 +100,19 @@ const MintPage = () => {
       </div>
   }
 
+  if (checking) {
+    return <div className="mint-page-container">Checking POAP ownership...</div>;
+  }
+
+  if (alreadyMinted) {
+    return (
+      <div className="mint-page-container error">
+        <div>You already own this POAP for this event.</div>
+        <div><a href="/poaps" className='poap-link'>Go to your POAPs</a></div>
+      </div>
+    );
+  }
+
   if (status === 'minting') {
     return <div className="mint-page-container">Minting POAP...</div>;
   }
@@ -81,9 +120,7 @@ const MintPage = () => {
     return (
       <div className="mint-page-container success">
         <div>POAP minted successfully!</div>
-        <div>
-          <a href="/poaps" className='poap-link'>Go to your POAPs</a>
-        </div>
+        <div><a href="/poaps" className='poap-link'>Go to your POAPs</a></div>
       </div>
     );
   }

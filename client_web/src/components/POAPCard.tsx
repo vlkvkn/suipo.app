@@ -48,7 +48,6 @@ export function POAPCard() {
           <div className="poap-card-content">
             <h3>{poap.name}</h3>
             <p>{poap.description}</p>
-            <span className="poap-card-event">Event ID: {poap.eventId}</span>
           </div>
         </div>
       ))}

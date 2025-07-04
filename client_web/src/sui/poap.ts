@@ -7,7 +7,8 @@ export interface POAP {
   name: string;
   description: string;
   imageUrl: string;
-  eventId: string;
+  eventKey: string;
+  eventName: string;
 }
 
 // Get user's POAPs
@@ -40,7 +41,7 @@ export async function getPOAPs(suiClient: any, address: string): Promise<POAP[]>
         name: fields.name || 'Unknown POAP',
         description: fields.description || 'No description',
         imageUrl: fields.img_url || '',
-        eventId: fields.event_id || 'Unknown Event',
+        eventkey: fields.event_key || 'Unknown Event',
       };
       return poap;
     });
@@ -119,6 +120,7 @@ export function buildMintPoapTx(eventKey: string) {
 export async function buildCreateEventTx(
   suiClient: any,
   eventKey: string,
+  eventName: string,
   description: string,
   imgPath: string,
   poapName: string,
@@ -137,6 +139,7 @@ export async function buildCreateEventTx(
     arguments: [
       tx.object(eventConfig.data.objectId),
       tx.pure.string(eventKey),
+      tx.pure.string(eventName),
       tx.pure.string(description),
       tx.pure.string(imgPath),
       tx.pure.string(poapName),

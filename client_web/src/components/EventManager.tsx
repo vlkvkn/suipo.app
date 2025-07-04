@@ -11,6 +11,7 @@ export function EventManager() {
   const [events, setEvents] = useState<POAPEvent[]>([]);
   const [newEvent, setNewEvent] = useState({ 
     eventKey: '', 
+    eventName: '',
     description: '', 
     imgPath: '',
     poapName: '',
@@ -133,6 +134,7 @@ export function EventManager() {
       const tx = await buildCreateEventTx(
         suiClient,
         newEvent.eventKey,
+        newEvent.eventName,
         newEvent.description,
         eventImagePath, // Use uploaded image URL
         newEvent.poapName,
@@ -149,7 +151,8 @@ export function EventManager() {
       if (result) {
         // Reset form and file inputs
         setNewEvent({ 
-          eventKey: '', 
+          eventKey: '',
+          eventName: '', 
           description: '', 
           imgPath: '',
           poapName: '',
@@ -189,7 +192,29 @@ export function EventManager() {
             type="text"
             placeholder="Event Key"
             value={newEvent.eventKey}
-            onChange={(e) => setNewEvent({ ...newEvent, eventKey: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Check that only valid characters are entered
+              const validPattern = /^[a-zA-Z0-9_-]*$/;
+              if (validPattern.test(value) || value === '') {
+                setNewEvent({ ...newEvent, eventKey: value });
+              }
+            }}
+            onBlur={(e) => {
+              const value = e.target.value;
+              const validPattern = /^[a-zA-Z0-9_-]+$/;
+              if (value && !validPattern.test(value)) {
+                alert('Event Key can only contain uppercase and lowercase Latin letters, numbers, "-" and "_" signs');
+              }
+            }}
+            className="event-manager-input"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Event name"
+            value={newEvent.eventName}
+            onChange={(e) => setNewEvent({ ...newEvent, eventName: e.target.value })}
             className="event-manager-input"
             required
           />
