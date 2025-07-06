@@ -7,7 +7,7 @@ import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { generateNonce, generateRandomness } from '@mysten/sui/zklogin';
 import { setSalt } from '../api/zklogin';
 import { useLocation } from 'react-router-dom';
-import { SUI_NETWORK } from '../config';
+import { BASE_URL, SUI_NETWORK, GOOGLE_OAUTH_URL, GOOGLE_CLIENT_ID } from '../config';
 
 const WalletContext = createContext<ReturnType<typeof createWalletStore> | null>(null);
 const SuiClientContext = createContext<SuiClient | null>(null);
@@ -275,7 +275,7 @@ export function useZkLogin() {
   if (locpathname === "/" || locpathname === "/#") {
     locpathname = "/poaps"
   }
-  const redirectUrl = import.meta.env.VITE_APP_DOMAIN + locpathname + window.location.search.toString(); //TODO remake with state
+  const redirectUrl = BASE_URL + locpathname + window.location.search.toString(); //TODO redo using state
 
   const suiClient = useSuiClient();
 
@@ -402,17 +402,14 @@ function generateState(): string {
 function buildGoogleOAuthUrl(redirectUrl:string,WalletContext: ReturnType<typeof createWalletStore>): string {
 
   const { zk_randomness, zk_maxEpoch, zk_ephemeralKeyPair } = WalletContext.getState();
-  const GOOGLE_OAUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'; //TODO: move to env or config
 
   // Generate state parameter for security
   const state = generateState();
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
   let nonce = generateNonce((zk_ephemeralKeyPair as Ed25519Keypair).getPublicKey(), zk_maxEpoch, zk_randomness as string);
 
   const params = new URLSearchParams({
-    client_id: clientId,
+    client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUrl,
     response_type: 'id_token',
     scope: 'openid email profile',
