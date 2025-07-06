@@ -1,173 +1,95 @@
-# SUI POAP Backend Server
+# SUI POAP - Backend
 
-Backend server for SUI POAP application with image upload and zklogin salt management functionality.
+Backend server for the decentralized SUI POAP application, built with Node.js and Express.js.
 
-## Installation
+## 🚀 Features
 
-1. Install dependencies:
+- **File Upload API**: Handle image uploads for POAPs
+- **zkLogin Integration**: Support for zkLogin authentication
+- **File Storage**: AWS S3 integration for image storage
+
+## 🛠️ Tech Stack
+
+- **Backend**: Node.js, Express.js
+- **Storage**: AWS S3 for image storage and CDN delivery
+- **Authentication**: zkLogin
+- **Deployment**: Docker, Fly.io
+
+## 📦 Installation
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- AWS S3 bucket (for file storage)
+
+### Setup
+
+1. Navigate to the server directory:
+```bash
+cd server
+```
+
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Copy configuration file:
-```bash
-cp env.example .env
-```
+3. Create a `.env` file in the server directory. See `env.example` for reference.
 
-3. Configure environment variables in `.env` file
-
-## Running
-
-### Development mode
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-### Production mode
-```bash
-npm start
+The server will be available at `http://localhost:8000`
+
+## 🔧 Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server with nodemon
+- `npm start` - Start production server
+
+### API Endpoints
+
+#### File Upload
+- `POST /upload` - Upload images for POAPs
+
+#### zkLogin
+- `POST /zklogin/verify` - Verify zkLogin tokens
+
+## 🌐 Deployment
+
+The application is configured for deployment on Fly.io with Docker containers.
+
+### Backend Deployment
+- Node.js Express server
+- File upload handling
+- CORS configuration
+- Configured with `fly.toml`
+
+### Environment Variables
+
+Create a `.env` file with the following variables:
+
+```env
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=your_region
+S3_BUCKET_NAME=your_bucket_name
+
+# Server Configuration
+PORT=8000
+NODE_ENV=development
+
+# CORS Configuration
+CORS_ORIGIN=http://localhost:5173
 ```
 
-Server will be available at: `http://localhost:8000`
+## 🔒 Security
 
-## API Endpoints
-
-### Image Upload
-
-#### POST `/api/upload/image`
-Upload single image
-
-**Parameters:**
-- `image` (file) - image file
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Image uploaded successfully",
-  "file": {
-    "filename": "uuid-filename.jpg",
-    "originalName": "original-name.jpg",
-    "size": 12345,
-    "url": "http://localhost:8000/uploads/uuid-filename.jpg"
-  }
-}
-```
-
-#### POST `/api/upload/images`
-Upload multiple images (up to 10 files)
-
-**Parameters:**
-- `images` (files) - array of image files
-
-#### GET `/api/upload/images`
-Get list of all uploaded images
-
-#### DELETE `/api/upload/image/:filename`
-Delete image by filename
-
-### ZKLogin Salt Management
-
-#### POST `/api/zklogin/salt`
-Save new salt for user
-
-**Request body:**
-```json
-{
-  "userAddress": "0x...",
-  "salt": "salt-value",
-  "provider": "google",
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
-
-#### GET `/api/zklogin/salt/:userAddress`
-Get salt by user address
-
-#### GET `/api/zklogin/salts`
-Get all salts with pagination
-
-**Query parameters:**
-- `page` (number) - page number (default: 1)
-- `limit` (number) - records per page (default: 10)
-- `provider` (string) - filter by provider
-
-#### PUT `/api/zklogin/salt/:id`
-Update existing salt
-
-#### DELETE `/api/zklogin/salt/:id`
-Delete salt by ID
-
-#### DELETE `/api/zklogin/salt/user/:userAddress`
-Delete salt by user address
-
-### Health Check
-
-#### GET `/api/health`
-Server health check
-
-## Project Structure
-
-```
-server/
-├── index.js              # Main server file
-├── routes/
-│   ├── upload.js         # Image upload routes
-│   └── zklogin.js        # ZKLogin salt management routes
-├── uploads/              # Uploaded images directory
-├── data/                 # Data directory (salts)
-├── package.json
-├── env.example
-└── README.md
-```
-
-## Supported Image Formats
-
-- JPEG (.jpg, .jpeg)
-- PNG (.png)
-- GIF (.gif)
-- WebP (.webp)
-
-Maximum file size: 5MB
-
-## Security
-
-- File type validation
-- File size limits
-- Unique filenames
-- CORS settings
-- Input validation
-
-## Usage Examples
-
-### Upload image from frontend
-
-```javascript
-const formData = new FormData();
-formData.append('image', fileInput.files[0]);
-
-fetch('http://localhost:8000/api/upload/image', {
-  method: 'POST',
-  body: formData
-})
-.then(response => response.json())
-.then(data => console.log(data));
-```
-
-### Save zklogin salt
-
-```javascript
-fetch('http://localhost:8000/api/zklogin/salt', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    userAddress: '0x123...',
-    salt: 'generated-salt',
-    provider: 'google'
-  })
-})
-.then(response => response.json())
-.then(data => console.log(data));
-``` 
+- All uploaded files are validated for type and size
+- CORS is configured to restrict access to allowed domains only
+- zkLogin provides secure authentication without exposing private keys

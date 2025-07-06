@@ -1,24 +1,57 @@
-# SUI POAP - Proof of Attendance Protocol
+# SUI POAP - Frontend
 
-🌐 **Project Website**: [suipo.app](https://suipo.app)
-
-A decentralized application (dApp) built on the SUI blockchain that allows users to create events and mint POAP (Proof of Attendance Protocol) NFTs for event attendees.
+Web client for the decentralized SUI POAP application, built with React and TypeScript.
 
 ## 🚀 Features
 
 - **POAP Minting**: Mint unique NFTs for event attendees
 - **Event Management**: Create, view, and manage events through a user-friendly interface
-- **Blockchain Storage**: All event data and POAPs are stored on the SUI blockchain
 - **zkLogin Support**: Secure authentication using zkLogin protocol
+- **Wallet Integration**: Support for SUI wallet connections
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: React, TypeScript, Vite, Radix UI
-- **Backend**: Node.js, Express.js
-- **Blockchain**: SUI Network, Move language
 - **Authentication**: zkLogin, SUI Wallet Standard
 - **State Management**: Zustand, React Query
+- **Styling**: CSS, Framer Motion
 - **Storage**: AWS S3 for image storage and CDN delivery
+
+## 📦 Installation
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Setup
+
+1. Navigate to the client directory:
+```bash
+cd client_web
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Create a `.env` file in the client directory. See `env.example` for reference.
+
+4. Start the development server:
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`
+
+## 🔧 Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 
 ## 🎯 Usage
 
@@ -41,9 +74,11 @@ A decentralized application (dApp) built on the SUI blockchain that allows users
 2. Navigate to the POAPs page (`/poaps`)
 3. View all your collected POAPs
 
+## 🌐 Deployment
 
-## 📚 Documentation
+The application is configured for deployment on Fly.io with Docker containers.
 
-- **[Frontend Documentation](client_web/README.md)** - React app setup, development, and deployment
-- **[Backend Documentation](server/README.md)** - Node.js server setup, API endpoints, and configuration
-- **[Smart Contracts Documentation](contracts/README.md)** - Move contracts, deployment, and security
+### Frontend Deployment
+- Uses Vite for building
+- Served via nginx
+- Configured with `fly.toml` 
