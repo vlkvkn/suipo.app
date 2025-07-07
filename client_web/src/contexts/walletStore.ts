@@ -1,7 +1,6 @@
 import { createStore } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { WalletAccount, WalletWithRequiredFeatures } from '@mysten/wallet-standard';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
 type WalletConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
@@ -22,10 +21,11 @@ interface WalletState {
   zk_isLoading: false,
   zk_error: string | null;
   zk_userAddress: string | null;
-  zk_ephemeralKeyPair: Ed25519Keypair | undefined;
+  zk_ephsk: string;
   zk_jwt: string | null;
   zk_maxEpoch: number;
   zk_randomness?: string;
+  zk_proofData: any
 
   // Actions
   setConnectionStatus: (connectionStatus: WalletConnectionStatus) => void;
@@ -61,7 +61,7 @@ export function createWalletStore({
     persist(
       (set, get) => ({
         
-        zk_ephemeralKeyPair: undefined,
+        zk_ephsk: "",
         zk_error: null,
         zk_isAuthenticated: false,
         zk_isLoading: false,
@@ -69,6 +69,7 @@ export function createWalletStore({
         zk_maxEpoch: 0,
         zk_userAddress: null,
         zk_randomness: "",
+        zk_proofData: undefined,
         
         autoConnectEnabled,
         wallets,
@@ -157,7 +158,8 @@ export function createWalletStore({
           zk_jwt,
           zk_maxEpoch,
           zk_randomness,
-          zk_ephemeralKeyPair
+          zk_ephsk,
+          zk_proofData
         }) => ({
           lastConnectedWalletName,
           lastConnectedAccountAddress,
@@ -166,7 +168,8 @@ export function createWalletStore({
           zk_jwt,
           zk_maxEpoch,
           zk_randomness,
-          zk_ephemeralKeyPair
+          zk_ephsk,
+          zk_proofData
         })
       }
     )

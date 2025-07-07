@@ -14,7 +14,7 @@ const MintPage = () => {
   const query = useQuery();
   const mintkey = query.get('mintkey') || '';
   const {account} = useCurrentWallet();
-  const {isAuthenticated, userAddress, ephemeralKeyPair, jwt, maxEpoch, randomness } = useZkLogin();
+  const {isAuthenticated, userAddress, ephemeralKeyPair, jwt, maxEpoch, proofData } = useZkLogin();
   const [status, setStatus] = useState<'idle'|'minting'|'success'|'error'>('idle');
   const [error, setError] = useState<string>('');
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
@@ -28,7 +28,7 @@ const MintPage = () => {
     ephemeralKeyPair: ephemeralKeyPair as any,
     jwt: jwt || "",
     maxEpoch: maxEpoch || 0,
-    randomness: randomness || '',
+    proofData: proofData as any,
     userAddress: userAddress || '',
   });
 

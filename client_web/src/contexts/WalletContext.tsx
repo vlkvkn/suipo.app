@@ -3,13 +3,13 @@ import { useLocation } from 'react-router-dom';
 
 import { WalletWithRequiredFeatures, getWallets } from '@mysten/wallet-standard';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
-import { generateNonce, generateRandomness } from '@mysten/sui/zklogin';
+import { generateNonce, generateRandomness, getExtendedEphemeralPublicKey } from '@mysten/sui/zklogin';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
 import { useStore } from 'zustand';
 
 import { createWalletStore } from './walletStore';
-import { setSalt } from '../api/zklogin';
+import { setSalt,getProof } from '../api/zklogin';
 import { BASE_URL, SUI_NETWORK, GOOGLE_OAUTH_URL, GOOGLE_CLIENT_ID } from '../config';
 
 const WalletContext = createContext<ReturnType<typeof createWalletStore> | null>(null);
@@ -243,11 +243,14 @@ export function useZkLogin() {
 
   const userAddress = useStore(store, (state) => state.zk_userAddress);
   const isAuthenticated = useStore(store, (state) => state.zk_isAuthenticated);
-  const ephemeralKeyPair = useStore(store, (state) => state.zk_ephemeralKeyPair);
+  const zk_ephsk = useStore(store, (state) => state.zk_ephsk);
   const jwt = useStore(store, (state) => state.zk_jwt);
   const maxEpoch = useStore(store, (state) => state.zk_maxEpoch);
   const randomness = useStore(store, (state) => state.zk_randomness);
   const isLoading = useStore(store, (state) => state.zk_isLoading);
+  const proofData = useStore(store, (state) => state.zk_proofData);
+
+  const ephemeralKeyPair = !zk_ephsk ? undefined : Ed25519Keypair.fromSecretKey(zk_ephsk);
 
   let locpathname = useLocation().pathname;  
   if (locpathname === "/" || locpathname === "/#") {
@@ -268,7 +271,7 @@ export function useZkLogin() {
       zk_jwt: null,
       zk_maxEpoch: 0,
       zk_randomness: "",
-      zk_ephemeralKeyPair: undefined,
+      zk_ephsk: "",
     }));
 
   }, []);
@@ -285,17 +288,14 @@ export function useZkLogin() {
           store.setState(prev => ({ ...prev, zklogin_isLoading: true, zklogin_error: null }));
           const saltResponse = await setSalt(idToken);
 
-          const zk_randomness = store.getState().zk_randomness;
-          const zk_maxEpoch = store.getState().zk_maxEpoch;
-          const zk_ephemeralKeyPair = store.getState().zk_ephemeralKeyPair;
+          const ephemeralPublicKey = getExtendedEphemeralPublicKey((ephemeralKeyPair as Ed25519Keypair).getPublicKey());
+          const proofData = await getProof(idToken, ephemeralPublicKey, maxEpoch, randomness as string);
 
           store.setState(prev => ({
             ...prev,
-            zk_ephemeralKeyPair: zk_ephemeralKeyPair,
-            zk_maxEpoch: zk_maxEpoch,
-            zk_randomness: zk_randomness,
             zk_isAuthenticated: true,
             zk_userAddress: saltResponse.userAddress,
+            zk_proofData: proofData,
             zk_jwt: idToken,
             zk_isLoading: false
           }));
@@ -319,22 +319,13 @@ export function useZkLogin() {
     try {
 
       const { epoch } = await suiClient.getLatestSuiSystemState();
-
       const ephemeralKeyPair = new Ed25519Keypair();
-
-      const zk_lokalstorage = {
-        randomness: generateRandomness(),
-        maxEpoch: Number(epoch) + 2,
-        secretkey: ephemeralKeyPair.getSecretKey(),
-      }
-
-      localStorage.setItem("zk_storage", JSON.stringify(zk_lokalstorage));
 
       store.setState(prev => ({
         ...prev,
-        zk_randomness: zk_lokalstorage.randomness,
-        zk_maxEpoch: zk_lokalstorage.maxEpoch,
-        zk_ephemeralKeyPair: ephemeralKeyPair,
+        zk_randomness: generateRandomness(),
+        zk_maxEpoch: Number(epoch) + 2,
+        zk_ephsk: ephemeralKeyPair.getSecretKey(),
       }));
 
       const oauthUrl = buildGoogleOAuthUrl(redirectUrl,store);
@@ -352,6 +343,7 @@ export function useZkLogin() {
     userAddress,
     isAuthenticated,
     isLoading,
+    proofData,
     ephemeralKeyPair,
     jwt,
     maxEpoch,
@@ -362,7 +354,7 @@ export function useZkLogin() {
 }
 
 // Generate a random state parameter for OAuth security
-function generateState(): string {
+function generateOAuthState(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
@@ -370,12 +362,13 @@ function generateState(): string {
 
 function buildGoogleOAuthUrl(redirectUrl:string,WalletContext: ReturnType<typeof createWalletStore>): string {
 
-  const { zk_randomness, zk_maxEpoch, zk_ephemeralKeyPair } = WalletContext.getState();
+  const { zk_randomness, zk_maxEpoch, zk_ephsk } = WalletContext.getState();
 
   // Generate state parameter for security
-  const state = generateState();
+  const state = generateOAuthState();
 
-  let nonce = generateNonce((zk_ephemeralKeyPair as Ed25519Keypair).getPublicKey(), zk_maxEpoch, zk_randomness as string);
+  const zk_ephemeralKeyPair = Ed25519Keypair.fromSecretKey(zk_ephsk);
+  let nonce = generateNonce(zk_ephemeralKeyPair.getPublicKey(), zk_maxEpoch, zk_randomness as string);
 
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,

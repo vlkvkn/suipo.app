@@ -2,14 +2,13 @@ import { useState, useCallback } from 'react';
 import { SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
-import { getZkLoginSignature, getExtendedEphemeralPublicKey } from '@mysten/sui/zklogin';
-import { getProof } from '../api/zklogin';
+import { getZkLoginSignature } from '@mysten/sui/zklogin';
 
 interface UseZkLoginTransactionProps {
   client: SuiClient;
   ephemeralKeyPair: Ed25519Keypair;
   jwt: string;
-  randomness: string;
+  proofData: any;
   maxEpoch: number;
   userAddress: string;
 }
@@ -24,9 +23,8 @@ interface TransactionState {
 export function useZkLoginTransaction({
   client,
   ephemeralKeyPair,
-  randomness,
   maxEpoch,
-  jwt,
+  proofData,
   userAddress,
 }: UseZkLoginTransactionProps) {
   const [state, setState] = useState<TransactionState>({
@@ -47,15 +45,11 @@ export function useZkLoginTransaction({
         success: false,
         txDigest: null,
       }));
-
-      const ephemeralPublicKey = getExtendedEphemeralPublicKey(ephemeralKeyPair.getPublicKey());
-      const proofData = await getProof(jwt, ephemeralPublicKey, maxEpoch, randomness);
       
-      // Set the sender for the transaction
       transaction.setSender(userAddress);
       const { bytes, signature: userSignature } = await transaction.sign({
         client,
-        signer: ephemeralKeyPair, // This must be the same ephemeral key pair used in the ZKP request
+        signer: ephemeralKeyPair,
       });
 
       // Convert userSignature from base64 to Uint8Array
@@ -102,7 +96,7 @@ export function useZkLoginTransaction({
       }));
       throw error;
     }
-  }, [client, ephemeralKeyPair, jwt, maxEpoch, randomness]);
+  }, [client, ephemeralKeyPair, maxEpoch]);
 
   const reset = useCallback(() => {
     setState({
