@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -140,32 +139,7 @@ export function WalletProvider({
     }
   }, [walletStore]);
 
-  // Automatic zkLogin reconnection if data is present in localStorage
-  useEffect(() => {
-    try {
-      const zkStorage = localStorage.getItem('zk_storage');
-      if (zkStorage) {
-        const zkData = JSON.parse(zkStorage);
-        if (zkData) {
-          const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(zkData.secretkey);
-          // If not already authenticated, restore zkLogin state
-          if (!walletStore.getState().zk_isAuthenticated) {
-            walletStore.setState(prev => ({
-              ...prev,
-              zk_ephemeralKeyPair: ephemeralKeyPair,
-              zk_maxEpoch: zkData.maxEpoch,
-              zk_randomness: zkData.randomness,
-              zk_isAuthenticated: true,
-              zk_userAddress: zkData.userAddress,
-              zk_jwt: zkData.jwt,
-            }));
-          }
-        }
-      }
-    } catch (e) {
-      // Ignore parse errors
-    }
-  }, [walletStore]);
+
 
   return (
     <SuiClientContext.Provider value={suiClient}>
@@ -285,8 +259,6 @@ export function useZkLogin() {
 
   const logout = useCallback(() => {
 
-    localStorage.removeItem("zk_storage");
-
     store.setState(prev => ({
       ...prev,
       zk_isAuthenticated: false,
@@ -312,23 +284,16 @@ export function useZkLogin() {
         try {
           store.setState(prev => ({ ...prev, zklogin_isLoading: true, zklogin_error: null }));
           const saltResponse = await setSalt(idToken);
-          const zk_lokalstorageJSON = JSON.parse(localStorage.getItem("zk_storage") as string);
-          const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(zk_lokalstorageJSON.secretkey);
 
-          // Save all zkLogin data to localStorage
-          localStorage.setItem("zk_storage", JSON.stringify({
-            randomness: zk_lokalstorageJSON.randomness,
-            maxEpoch: zk_lokalstorageJSON.maxEpoch,
-            secretkey: zk_lokalstorageJSON.secretkey,
-            userAddress: saltResponse.userAddress,
-            jwt: idToken
-          }));
+          const zk_randomness = store.getState().zk_randomness;
+          const zk_maxEpoch = store.getState().zk_maxEpoch;
+          const zk_ephemeralKeyPair = store.getState().zk_ephemeralKeyPair;
 
           store.setState(prev => ({
             ...prev,
-            zk_ephemeralKeyPair: ephemeralKeyPair,
-            zk_maxEpoch: zk_lokalstorageJSON.maxEpoch,
-            zk_randomness: zk_lokalstorageJSON.randomness,
+            zk_ephemeralKeyPair: zk_ephemeralKeyPair,
+            zk_maxEpoch: zk_maxEpoch,
+            zk_randomness: zk_randomness,
             zk_isAuthenticated: true,
             zk_userAddress: saltResponse.userAddress,
             zk_jwt: idToken,

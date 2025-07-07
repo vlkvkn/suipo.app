@@ -149,9 +149,24 @@ export function createWalletStore({
       {
         name: storageKey,
         storage: createJSONStorage(() => storage),
-        partialize: ({ lastConnectedWalletName, lastConnectedAccountAddress }) => ({
+        partialize: ({ 
+          lastConnectedWalletName, 
+          lastConnectedAccountAddress,
+          zk_isAuthenticated,
+          zk_userAddress,
+          zk_jwt,
+          zk_maxEpoch,
+          zk_randomness,
+          zk_ephemeralKeyPair
+        }) => ({
           lastConnectedWalletName,
-          lastConnectedAccountAddress
+          lastConnectedAccountAddress,
+          zk_isAuthenticated,
+          zk_userAddress,
+          zk_jwt,
+          zk_maxEpoch,
+          zk_randomness,
+          zk_ephemeralKeyPair
         })
       }
     )
