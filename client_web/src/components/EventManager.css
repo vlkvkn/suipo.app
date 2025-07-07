@@ -66,6 +66,16 @@
   grid-column: 1 / -1;
 }
 
+.event-manager-file-error {
+  font-size: 0.75rem;
+  color: #dbeafe;
+  background-color: #eb8072;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  margin-top: 0.25rem;
+  grid-column: 1 / -1;
+}
+
 .event-manager-upload-progress {
   font-size: 0.875rem;
   color: #2563eb;
@@ -105,7 +115,7 @@
 
 .event-manager-event-card {
   flex: 0 0 auto;
-  width: 20rem;
+  width: 30rem;
   background-color: #f9fafb;
   border-radius: 0.5rem;
   padding: 1rem;

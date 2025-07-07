@@ -13,8 +13,8 @@ function useQuery() {
 const MintPage = () => {
   const query = useQuery();
   const mintkey = query.get('mintkey') || '';
-  const wallet = useCurrentWallet();
-  const { isAuthenticated, userAddress, ephemeralKeyPair, jwt, maxEpoch, randomness } = useZkLogin();
+  const {account} = useCurrentWallet();
+  const {isAuthenticated, userAddress, ephemeralKeyPair, jwt, maxEpoch, randomness } = useZkLogin();
   const [status, setStatus] = useState<'idle'|'minting'|'success'|'error'>('idle');
   const [error, setError] = useState<string>('');
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
@@ -33,7 +33,7 @@ const MintPage = () => {
   });
 
   // Check if user is connected via either standard wallet or zkLogin
-  const isConnected = wallet?.accounts[0]?.address || (isAuthenticated && userAddress);
+  const isConnected = account?.address || (isAuthenticated && userAddress);
   const isZkLoginConnected = isAuthenticated && userAddress;
 
   useEffect(() => {
@@ -41,7 +41,7 @@ const MintPage = () => {
       if (isConnected && mintkey) {
         setChecking(true);
         try {
-          const address = wallet?.accounts[0]?.address || userAddress || '';
+          const address = account?.address || userAddress || '';
           const userPoaps = await getPOAPs(suiClient, address);
           const hasPoap = userPoaps.some(poap => poap.eventKey === mintkey);
           setAlreadyMinted(hasPoap);

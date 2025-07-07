@@ -4,14 +4,14 @@ import { getPOAPs, POAP } from '../sui/poap';
 import './POAPCard.css';
 
 export function POAPCard() {
-  const wallet = useCurrentWallet();
-  const { isAuthenticated, userAddress } = useZkLogin();
+  const {account} = useCurrentWallet();
+  const {isAuthenticated, userAddress} = useZkLogin();
   const [poaps, setPoaps] = useState<POAP[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Get address from either standard wallet or zkLogin
-  const address = wallet?.accounts[0]?.address || (isAuthenticated ? userAddress : null);
+  const address = account?.address || (isAuthenticated ? userAddress : null);
   const suiClient = useSuiClient();
 
   useEffect(() => {

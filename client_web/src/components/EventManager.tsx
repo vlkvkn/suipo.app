@@ -5,14 +5,50 @@ import { buildCreateEventTx, getEvents } from '../sui/poap';
 import { POAPEvent } from '../types/poap';
 import './EventManager.css';
 import QRCode from 'react-qr-code';
-import { BASE_URL, SERVER_URL } from '../config';
+import { BASE_URL, SERVER_URL, MAX_FILE_SIZE } from '../config';
+
+interface ImageUploadProps {
+  id: string;
+  label: string;
+  file: File | null;
+  onFileChange: (file: File | null) => void;
+  required?: boolean;
+}
+
+function ImageUpload({ id, label, file, onFileChange, required = false }: ImageUploadProps) {
+  return (
+    <div className="event-manager-input-group">
+      <label htmlFor={id} className="event-manager-label">
+        {label} {required && '(required)'}
+      </label>
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        onChange={(e) => onFileChange(e.target.files?.[0] || null)}
+        className="event-manager-file-input"
+        required={required}
+      />
+      {file && file.size <= MAX_FILE_SIZE && (
+        <div className="event-manager-file-info">
+          Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+        </div>
+      )}
+      {file && file.size > MAX_FILE_SIZE && (
+        <div className="event-manager-file-error">
+          Selected file size {(file.size / 1024 / 1024).toFixed(2)} MB exceeds {(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB limit
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function EventManager() {
   const [events, setEvents] = useState<POAPEvent[]>([]);
-  const [newEvent, setNewEvent] = useState({ 
-    eventKey: '', 
+  const [newEvent, setNewEvent] = useState({
+    eventKey: '',
     eventName: '',
-    description: '', 
+    description: '',
     imgPath: '',
     poapName: '',
     poapDescription: '',
@@ -24,7 +60,7 @@ export function EventManager() {
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [eventImageFile, setEventImageFile] = useState<File | null>(null);
   const [poapImageFile, setPoapImageFile] = useState<File | null>(null);
-  const wallet = useCurrentWallet();
+  const { account } = useCurrentWallet();
   const suiClient = useSuiClient();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
@@ -44,10 +80,10 @@ export function EventManager() {
 
   // Function to upload image to server
   const uploadImage = async (file: File): Promise<string> => {
-    // Validate file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      throw new Error(`File size exceeds 5MB limit. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(`File size exceeds ${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB limit. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
     }
 
     // Validate file type
@@ -92,18 +128,18 @@ export function EventManager() {
 
     setUploadingImages(true);
     setUploadProgress('Starting image upload...');
-    
+
     try {
       // Upload event image first
       setUploadProgress('Uploading event image...');
       const eventImagePath = await uploadImage(eventImageFile);
-      
+
       // Upload POAP image
       setUploadProgress('Uploading POAP image...');
       const poapImagePath = await uploadImage(poapImageFile);
-      
+
       setUploadProgress('Images uploaded successfully!');
-      
+
       return { eventImagePath, poapImagePath };
     } catch (error) {
       setUploadProgress('');
@@ -115,7 +151,7 @@ export function EventManager() {
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!wallet?.accounts[0]?.address) {
+    if (!account?.address) {
       alert('Please connect your wallet first');
       return;
     }
@@ -149,10 +185,10 @@ export function EventManager() {
 
       if (result) {
         // Reset form and file inputs
-        setNewEvent({ 
+        setNewEvent({
           eventKey: '',
-          eventName: '', 
-          description: '', 
+          eventName: '',
+          description: '',
           imgPath: '',
           poapName: '',
           poapDescription: '',
@@ -162,7 +198,7 @@ export function EventManager() {
         setEventImageFile(null);
         setPoapImageFile(null);
         setUploadProgress('');
-        
+
         // Reset file input elements
         const eventImageInput = document.getElementById('event-image-input') as HTMLInputElement;
         const poapImageInput = document.getElementById('poap-image-input') as HTMLInputElement;
@@ -184,7 +220,7 @@ export function EventManager() {
   return (
     <div className="event-manager-container">
       <h2 className="event-manager-title">Event Manager</h2>
-      
+
       <form onSubmit={handleCreateEvent} className="event-manager-form">
         <div className="event-manager-input-group">
           <input
@@ -227,25 +263,7 @@ export function EventManager() {
           />
         </div>
 
-        {/* Event Image Upload */}
-        <div className="event-manager-input-group">
-          <label htmlFor="event-image-input" className="event-manager-label">
-            Event Image (required)
-          </label>
-          <input
-            id="event-image-input"
-            type="file"
-            accept="image/*"
-            onChange={(e) => setEventImageFile(e.target.files?.[0] || null)}
-            className="event-manager-file-input"
-            required
-          />
-          {eventImageFile && (
-            <div className="event-manager-file-info">
-              Selected: {eventImageFile.name} ({(eventImageFile.size / 1024 / 1024).toFixed(2)} MB)
-            </div>
-          )}
-        </div>
+        <ImageUpload id="event-image-input" label="Event Image" file={eventImageFile} onFileChange={setEventImageFile} required />
 
         <div className="event-manager-input-group">
           <input
@@ -266,25 +284,7 @@ export function EventManager() {
           />
         </div>
 
-        {/* POAP Image Upload */}
-        <div className="event-manager-input-group">
-          <label htmlFor="poap-image-input" className="event-manager-label">
-            POAP Image (required)
-          </label>
-          <input
-            id="poap-image-input"
-            type="file"
-            accept="image/*"
-            onChange={(e) => setPoapImageFile(e.target.files?.[0] || null)}
-            className="event-manager-file-input"
-            required
-          />
-          {poapImageFile && (
-            <div className="event-manager-file-info">
-              Selected: {poapImageFile.name} ({(poapImageFile.size / 1024 / 1024).toFixed(2)} MB)
-            </div>
-          )}
-        </div>
+        <ImageUpload id="poap-image-input" label="POAP Image" file={poapImageFile} onFileChange={setPoapImageFile} required />
 
         <div className="event-manager-input-group">
           <input
@@ -295,9 +295,9 @@ export function EventManager() {
             className="event-manager-input"
             required
           />
-          <div style={{ 
-            fontSize: '0.75rem', 
-            color: '#666', 
+          <div style={{
+            fontSize: '0.75rem',
+            color: '#666',
             marginTop: '0.25rem',
             gridColumn: '1 / -1'
           }}>
@@ -311,7 +311,7 @@ export function EventManager() {
         >
           {uploadingImages ? 'Uploading Images...' : isLoading ? 'Creating Event...' : 'Create Event'}
         </button>
-        
+
         {uploadProgress && (
           <div className="event-manager-upload-progress">
             {uploadProgress}
@@ -324,21 +324,21 @@ export function EventManager() {
           {events.map((event) => (
             <div key={event.id} className="event-manager-event-card">
               <div className="event-manager-event-content">
-                <img 
-                  src={event.imageUrl} 
-                  alt={event.name} 
+                <img
+                  src={event.imageUrl}
+                  alt={event.name}
                   className="event-manager-event-image"
                 />
                 <div className="event-manager-event-info">
                   <div className="event-manager-event-name">{event.name}</div>
                   <div className="event-manager-event-description">{event.description}</div>
-                  <div className="event-manager-event-description" style={{fontSize: '0.7rem', marginTop: '0.25rem'}}>
+                  <div className="event-manager-event-description" style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
                     POAP: {event.poapName}
                   </div>
-                  <div className="event-manager-event-description" style={{fontSize: '0.7rem'}}>
+                  <div className="event-manager-event-description" style={{ fontSize: '0.7rem' }}>
                     Visitors: {event.visitors.length}
                   </div>
-                  <div className="event-manager-event-description" style={{fontSize: '0.7rem'}}>
+                  <div className="event-manager-event-description" style={{ fontSize: '0.7rem' }}>
                     Expires: {(() => {
                       const timestamp = Number(event.expiredAt);
                       if (isNaN(timestamp) || timestamp === 0) {
@@ -348,7 +348,7 @@ export function EventManager() {
                     })()}
                   </div>
                 </div>
-                <div style={{marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <QRCode value={`${BASE_URL}/mint?mintkey=${encodeURIComponent(event.name)}`} size={64} />
                   {/* Direct mint link for mobile or desktop users */}
                   <a href={`${BASE_URL}/mint?mintkey=${encodeURIComponent(event.name)}`} target="_blank"

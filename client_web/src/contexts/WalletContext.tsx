@@ -1,12 +1,16 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useLayoutEffect, useCallback } from 'react';
-import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
-import { WalletWithRequiredFeatures, getWallets } from '@mysten/wallet-standard';
-import { useStore } from 'zustand';
-import { createWalletStore } from './walletStore';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
-import { generateNonce, generateRandomness } from '@mysten/sui/zklogin';
-import { setSalt } from '../api/zklogin';
 import { useLocation } from 'react-router-dom';
+
+import { WalletWithRequiredFeatures, getWallets } from '@mysten/wallet-standard';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { generateNonce, generateRandomness } from '@mysten/sui/zklogin';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+
+import { useStore } from 'zustand';
+
+import { createWalletStore } from './walletStore';
+import { setSalt } from '../api/zklogin';
 import { BASE_URL, SUI_NETWORK, GOOGLE_OAUTH_URL, GOOGLE_CLIENT_ID } from '../config';
 
 const WalletContext = createContext<ReturnType<typeof createWalletStore> | null>(null);
@@ -244,8 +248,8 @@ export function useWallet() {
 }
 
 export function useCurrentWallet() {
-  const { wallet } = useWallet();
-  return wallet;
+  const { wallet, account } = useWallet();
+  return { wallet, account };
 }
 
 export function useSuiClient() {
