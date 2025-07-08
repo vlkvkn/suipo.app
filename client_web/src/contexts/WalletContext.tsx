@@ -241,7 +241,7 @@ export function useZkLogin() {
     throw new Error('useWallet must be used within a WalletProvider');
   }
 
-  const userAddress = useStore(store, (state) => state.zk_userAddress);
+  const userAddress = useStore(store, (state) => state.zk_userAddress as string);
   const isAuthenticated = useStore(store, (state) => state.zk_isAuthenticated);
   const zk_ephsk = useStore(store, (state) => state.zk_ephsk);
   const jwt = useStore(store, (state) => state.zk_jwt);

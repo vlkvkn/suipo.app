@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useCurrentWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
-import { useZkLoginTransaction } from '../hooks/useZkLoginTransaction';
 import { buildMintPoapTx, getPOAPs } from '../sui/poap';
 import './MintPage.css';
 
@@ -14,23 +13,13 @@ const MintPage = () => {
   const query = useQuery();
   const mintkey = query.get('mintkey') || '';
   const {account} = useCurrentWallet();
-  const {isAuthenticated, userAddress, ephemeralKeyPair, jwt, maxEpoch, proofData } = useZkLogin();
+  const {isAuthenticated, userAddress } = useZkLogin();
   const [status, setStatus] = useState<'idle'|'minting'|'success'|'error'>('idle');
   const [error, setError] = useState<string>('');
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
   const [alreadyMinted, setAlreadyMinted] = useState(false);
   const [checking, setChecking] = useState(true);
-
-   // Always create zkLogin transaction hook, but only use it when connected
-   const zkLoginTransaction = useZkLoginTransaction({
-    client: suiClient,
-    ephemeralKeyPair: ephemeralKeyPair as any,
-    jwt: jwt || "",
-    maxEpoch: maxEpoch || 0,
-    proofData: proofData as any,
-    userAddress: userAddress || '',
-  });
 
   // Check if user is connected via either standard wallet or zkLogin
   const isConnected = account?.address || (isAuthenticated && userAddress);
@@ -67,12 +56,10 @@ const MintPage = () => {
         try {
           const tx = buildMintPoapTx(mintkey);
           
-          let result;
-          if (isZkLoginConnected) {
-            result = await zkLoginTransaction.executeTransaction(tx);
-          } else {
-            result = await signAndExecuteTransaction({ transaction: tx });
-          }
+          let result = await signAndExecuteTransaction({ 
+            transaction: tx, 
+            wallettype: isZkLoginConnected ? "zklogin" : "wallet-standard" 
+          });
           
           if (result) {
             setStatus('success');
