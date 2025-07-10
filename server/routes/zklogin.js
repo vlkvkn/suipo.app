@@ -172,4 +172,67 @@ router.post('/proof', async (req, res) => {
   }
 });
 
+// POST /api/zklogin/sponsor/create
+router.post('/sponsor/create', async (req, res) => {
+  try {
+
+    const { jwt, payloadBytes, userAddress, network } = req.body;
+
+   const sponsoredResponse = await fetch(`${process.env.ENOKI_API_BASE_URL}/transaction-blocks/sponsor`, {
+      method: 'POST',
+      headers: {
+        "zklogin-jwt": jwt,
+        "Authorization": `Bearer ${process.env.ENOKI_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        network: network,
+        transactionBlockKindBytes: payloadBytes,
+        sender: userAddress,
+        // allowedAddresses: [
+        //   "0x6b2e89a67fed30abd5278f57ac51a1f56bc85cff1661e1a9bea5a2e1ed651348"
+        // ],
+        // allowedMoveCallTargets: [
+        //   "0x6b2e89a67fed30abd5278f57ac51a1f56bc85cff1661e1a9bea5a2e1ed651348::issuer::mint"
+        // ]
+      })
+    });
+
+    const sponsoredResponseData = await sponsoredResponse.json();
+    return res.json(sponsoredResponseData);
+
+  }
+    catch (error) {
+    console.error('Error create sponsored transaction:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/zklogin/sponsor/execute
+router.post('/sponsor/execute', async (req, res) => {
+  try {
+
+    const { digest, signature } = req.body;
+
+   const sponsoredResponse = await fetch(`${process.env.ENOKI_API_BASE_URL}/transaction-blocks/sponsor/${digest}`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${process.env.ENOKI_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        signature: signature
+      })
+    });
+
+    const sponsoredResponseData = await sponsoredResponse.json();
+    return res.json(sponsoredResponseData);
+
+  }
+    catch (error) {
+    console.error('Error execute sponsored transaction:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router; 
