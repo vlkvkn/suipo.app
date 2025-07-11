@@ -3,27 +3,29 @@ import { Transaction } from '@mysten/sui/transactions';
 import { useWallet, useZkLogin, useSuiClient } from '../contexts/WalletContext';
 import { SUI_NETWORK } from '../config';
 import { getZkLoginSignature } from '@mysten/sui/zklogin';
+import { createSponsoredTransaction, executeSponsoredTransaction } from '../api/zklogin';
+import { Buffer } from 'buffer';
 
 interface SignAndExecuteTransactionOptions {
   transaction: Transaction;
-  wallettype?: 'wallet-standard' | 'zklogin';
+  transtactiontype?: 'wallet-standard' | 'zklogin' | 'zklogin-sponsored';
   requestType?: 'WaitForLocalExecution' | 'WaitForEffectsCert';
 }
 
 export function useSignAndExecuteTransaction() {
 
   const { wallet, account } = useWallet();
-  const { userAddress, ephemeralKeyPair, proofData, maxEpoch } = useZkLogin();
+  const { userAddress, ephemeralKeyPair, proofData, maxEpoch, jwt } = useZkLogin();
   const client =  useSuiClient();
 
   return useMutation({
     mutationFn: async ({ 
       transaction,
-      wallettype = 'wallet-standard',
+      transtactiontype = 'wallet-standard',
       requestType = 'WaitForLocalExecution'
     }: SignAndExecuteTransactionOptions) => {
 
-      if (wallettype == "wallet-standard") {
+      if (transtactiontype == "wallet-standard") {
         if (!wallet || !account) {
           throw new Error('Wallet not connected');
         }
@@ -48,7 +50,7 @@ export function useSignAndExecuteTransaction() {
         return result;
       
       //zklogin
-      } else {
+      } else if (transtactiontype == "zklogin") {
 
         if (ephemeralKeyPair == undefined) {
           throw new Error('Key pair is not ready');
@@ -81,6 +83,50 @@ export function useSignAndExecuteTransaction() {
           signature: zkLoginSignature,
         });
   
+        return result;
+
+      } else if (transtactiontype == "zklogin-sponsored") {
+
+        if (ephemeralKeyPair == undefined) {
+          throw new Error('Ephemeral key pair is not ready');
+        }
+
+        transaction.setSender(userAddress);
+
+        // Build the transaction with the onlyTransactionKind flag,
+        // as described in https://docs.enoki.mystenlabs.com/http-api/openapi
+        const payloadBytes = await transaction.build({
+          client,
+          onlyTransactionKind: true,
+        });
+
+        const payloadBytesHex = Buffer.from(payloadBytes).toString("hex");
+        const sponsoredResponse = await createSponsoredTransaction(jwt as string, payloadBytesHex, userAddress);
+        const gaslessTx = Transaction.from(sponsoredResponse.data.bytes);
+
+        const { signature: userSignature } = await gaslessTx.sign({
+          client,
+          signer: ephemeralKeyPair,
+        });
+
+        // Convert userSignature from base64 to Uint8Array
+        const zkLoginSignature = getZkLoginSignature({
+          inputs: {
+            proofPoints: {
+              a: proofData.data.proofPoints.a, 
+              b: proofData.data.proofPoints.b,
+              c: proofData.data.proofPoints.c,
+            },
+            issBase64Details: proofData.data.issBase64Details,
+            headerBase64: proofData.data.headerBase64,
+            addressSeed: proofData.data.addressSeed,
+          },
+          maxEpoch: maxEpoch.toString(),
+          userSignature: userSignature,
+        });
+
+        const result = await executeSponsoredTransaction(sponsoredResponse.data.digest, zkLoginSignature);
+
         return result;
 
       }

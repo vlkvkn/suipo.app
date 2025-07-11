@@ -1,6 +1,7 @@
 // App Configuration
 export const BASE_URL = import.meta.env.VITE_APP_DOMAIN;
 export const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+export const ASSETS_URL = import.meta.env.VITE_ASSETS_URL;
 export const MAX_FILE_SIZE = 2097152 //# Maximum file size for upload (in bytes)
 
 // Sui Network

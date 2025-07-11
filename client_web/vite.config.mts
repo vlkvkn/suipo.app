@@ -19,5 +19,13 @@ export default defineConfig({
         secure: false,
       }
     }
-  }
+  },
+  resolve: {
+    alias: {
+      buffer: 'buffer/',
+    },
+  },
+  optimizeDeps: {
+    include: ['buffer'],
+  },
 });

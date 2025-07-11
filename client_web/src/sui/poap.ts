@@ -1,5 +1,5 @@
 import { Transaction } from '@mysten/sui/transactions';
-import { PACKAGE_ID, EVENT_CONFIG_ID, CLOCK_ID } from '../config';
+import { PACKAGE_ID, EVENT_CONFIG_ID, CLOCK_ID,ASSETS_URL } from '../config';
 import { POAPEvent } from '../types/poap';
 
 export interface POAP {
@@ -7,7 +7,7 @@ export interface POAP {
   name: string;
   description: string;
   imageUrl: string;
-  eventKey: string;
+  eventkey: string;
   eventName: string;
 }
 
@@ -40,7 +40,7 @@ export async function getPOAPs(suiClient: any, address: string): Promise<POAP[]>
         id: obj.data?.objectId || '',
         name: fields.name || 'Unknown POAP',
         description: fields.description || 'No description',
-        imageUrl: fields.img_url || '',
+        imageUrl: ASSETS_URL+"/"+fields.image_path || '',
         eventkey: fields.event_key || 'Unknown Event',
       };
       return poap;
@@ -101,7 +101,7 @@ export async function getEvents(suiClient: any): Promise<POAPEvent[]> {
   }
 }
 
-// Mint POAP (use with useSignAndExecuteTransactionBlock)
+// Mint POAP transaction
 export function buildMintPoapTx(eventKey: string) {
   const tx = new Transaction();
   tx.setGasBudget(100000000);

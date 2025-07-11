@@ -32,33 +32,32 @@ const MintPage = () => {
         try {
           const address = account?.address || userAddress || '';
           const userPoaps = await getPOAPs(suiClient, address);
-          const hasPoap = userPoaps.some(poap => poap.eventKey === mintkey);
+          const hasPoap = userPoaps.some(poap => poap.eventkey === mintkey);
           setAlreadyMinted(hasPoap);
         } catch (e) {
           // Could not check, allow mint attempt
-          setAlreadyMinted(false);
         } finally {
           setChecking(false);
         }
       } else {
         setAlreadyMinted(false);
-        setChecking(false);
+        setChecking(true);
       }
     }
     checkAlreadyMinted();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mintkey]);
+  }, [mintkey,isConnected]);
 
   useEffect(() => {
     async function handleMint() {
-      if (isConnected && mintkey && !alreadyMinted) {
+      if (isConnected && mintkey && !alreadyMinted && !checking) {
         setStatus('minting');
         try {
           const tx = buildMintPoapTx(mintkey);
           
           let result = await signAndExecuteTransaction({ 
             transaction: tx, 
-            wallettype: isZkLoginConnected ? "zklogin" : "wallet-standard" 
+            transtactiontype: isZkLoginConnected ? "zklogin-sponsored" : "wallet-standard" 
           });
           
           if (result) {
@@ -75,7 +74,7 @@ const MintPage = () => {
     }
     handleMint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, mintkey, alreadyMinted]);
+  }, [isConnected, mintkey, alreadyMinted, checking]);
 
   if (!mintkey) {
     return <div style={{padding: 32}}>No event specified for minting.</div>;
