@@ -238,7 +238,7 @@ export function useZkLogin() {
 
   const store = useContext(WalletContext);
   if (!store) {
-    throw new Error('useWallet must be used within a WalletProvider');
+    throw new Error('useZkLogin must be used within a WalletProvider');
   }
 
   const userAddress = useStore(store, (state) => state.zk_userAddress as string);
@@ -347,7 +347,6 @@ export function useZkLogin() {
     ephemeralKeyPair,
     jwt,
     maxEpoch,
-    randomness,
     login,
     logout,
   };

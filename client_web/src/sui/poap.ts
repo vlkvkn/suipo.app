@@ -1,4 +1,5 @@
 import { Transaction } from '@mysten/sui/transactions';
+import { SuiClient } from '@mysten/sui/client';
 import { PACKAGE_ID, EVENT_CONFIG_ID, CLOCK_ID,ASSETS_URL } from '../config';
 import { POAPEvent } from '../types/poap';
 
@@ -7,12 +8,12 @@ export interface POAP {
   name: string;
   description: string;
   imageUrl: string;
-  eventkey: string;
-  eventName: string;
+  eventKey: string;
+  createdAt: Date;
 }
 
 // Get user's POAPs
-export async function getPOAPs(suiClient: any, address: string): Promise<POAP[]> {
+export async function getPOAPs(suiClient: SuiClient, address: string): Promise<POAP[]> {
 
   try {
     const objects = await suiClient.getOwnedObjects({
@@ -41,10 +42,12 @@ export async function getPOAPs(suiClient: any, address: string): Promise<POAP[]>
         name: fields.name || 'Unknown POAP',
         description: fields.description || 'No description',
         imageUrl: ASSETS_URL+"/"+fields.image_path || '',
-        eventkey: fields.event_key || 'Unknown Event',
+        eventKey: fields.event_key || 'Unknown Event',
+        createdAt: new Date(Number(fields.created_at)),
       };
       return poap;
     });
+    poaps.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return poaps;
   } catch (error) {
     console.error('Error in getPOAPs:', error);

@@ -32,7 +32,7 @@ const MintPage = () => {
         try {
           const address = account?.address || userAddress || '';
           const userPoaps = await getPOAPs(suiClient, address);
-          const hasPoap = userPoaps.some(poap => poap.eventkey === mintkey);
+          const hasPoap = userPoaps.some(poap => poap.eventKey === mintkey);
           setAlreadyMinted(hasPoap);
         } catch (e) {
           // Could not check, allow mint attempt

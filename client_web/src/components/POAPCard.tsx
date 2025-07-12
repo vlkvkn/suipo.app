@@ -48,6 +48,7 @@ export function POAPCard() {
           <div className="poap-card-content">
             <h3>{poap.name}</h3>
             <p>{poap.description}</p>
+            <p>Minted at: {poap.createdAt.toLocaleDateString()}</p>
           </div>
         </div>
       ))}

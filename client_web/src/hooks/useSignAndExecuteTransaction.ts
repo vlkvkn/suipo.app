@@ -53,7 +53,7 @@ export function useSignAndExecuteTransaction() {
       } else if (transtactiontype == "zklogin") {
 
         if (ephemeralKeyPair == undefined) {
-          throw new Error('Key pair is not ready');
+          throw new Error('Ephemeral key pair is not ready');
         }
 
         transaction.setSender(userAddress);
