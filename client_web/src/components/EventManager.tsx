@@ -5,7 +5,7 @@ import { buildCreateEventTx, getEvents } from '../sui/poap';
 import { POAPEvent } from '../types/poap';
 import './EventManager.css';
 import QRCode from 'react-qr-code';
-import { BASE_URL, SERVER_URL, MAX_FILE_SIZE } from '../config';
+import { BASE_URL, MAX_FILE_SIZE } from '../config';
 
 interface ImageUploadProps {
   id: string;
@@ -96,7 +96,7 @@ export function EventManager() {
     formData.append('image', file);
 
     try {
-      const response = await fetch(`${SERVER_URL}/api/upload/image`, {
+      const response = await fetch('/api/upload/image', {
         method: 'POST',
         body: formData,
       });
