@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Button, DropdownMenu, Text, Flex, Badge } from '@radix-ui/themes';
+import { Button, DropdownMenu, Text, Badge } from '@radix-ui/themes';
 import { getWallets, Wallet, WalletWithRequiredFeatures } from '@mysten/wallet-standard';
 import { useWallet, useZkLogin } from '../contexts/WalletContext';
 import { popularWallets } from '../config/wallets';
