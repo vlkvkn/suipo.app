@@ -194,22 +194,10 @@ export function ConnectButton() {
           </Button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
-          <DropdownMenu.Item>
-            <Flex direction="column" gap="1">
-              <Text size="1" color="gray">
-                Connected
-              </Text>
-              <Text size="2" weight="medium">
-                {currentAddress}
-              </Text>
-              {isZkLoginConnected && (
-                <Text size="1" color="gray">
-                  zkLogin (Google)
-                </Text>
-              )}
-            </Flex>
+          <DropdownMenu.Item onClick={() => { setIsOpen(false); navigate('/poaps'); }}>
+            <Text className="wallet-name">My Collection</Text>
           </DropdownMenu.Item>
-          <DropdownMenu.Separator />
+          <DropdownMenu.Separator className="dropdown-separator" />
           <DropdownMenu.Item onClick={handleDisconnect}>
             Disconnect
           </DropdownMenu.Item>
