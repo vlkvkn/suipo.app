@@ -35,6 +35,14 @@ export function ConnectButton() {
         const uniqueWallets = wallets.filter((wallet, index, self) => 
           index === self.findIndex(w => w.name === wallet.name)
         );
+
+        // Only Sui-capable wallets (require Sui features)
+        const isSuiWallet = (w: Wallet) => Boolean(
+          (w as any).features &&
+          (w as any).features['standard:connect'] &&
+          (w as any).features['sui:signTransactionBlock']
+        );
+        const suiWallets = uniqueWallets.filter(isSuiWallet);
         
         const walletInfos: WalletInfo[] = popularWallets.map(popularWallet => {
           // Check if this is zkLogin by type field
@@ -47,7 +55,7 @@ export function ConnectButton() {
             };
           }
 
-          const installedWallet = uniqueWallets.find(w => {
+          const installedWallet = suiWallets.find(w => {
             const walletName = w.name.toLowerCase();
             const popularName = popularWallet.name.toLowerCase();
             
@@ -74,7 +82,7 @@ export function ConnectButton() {
         });
 
         // Add any other installed wallets that aren't in our popular list
-        uniqueWallets.forEach(wallet => {
+        suiWallets.forEach(wallet => {
           // Check if this wallet is already in the popular list
           const isInPopularList = walletInfos.some(info => 
             info.wallet && info.wallet.name === wallet.name
