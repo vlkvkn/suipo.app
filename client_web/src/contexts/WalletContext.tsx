@@ -221,10 +221,6 @@ export function useWallet() {
   };
 }
 
-export function useCurrentWallet() {
-  const { wallet, account } = useWallet();
-  return { wallet, account };
-}
 
 export function useSuiClient() {
   const suiClient = useContext(SuiClientContext);

@@ -1,10 +1,10 @@
-import { useCurrentWallet, useSuiClient, useZkLogin} from '../contexts/WalletContext';
+import { useWallet, useSuiClient, useZkLogin} from '../contexts/WalletContext';
 import { useEffect, useState } from 'react';
 import { getPOAPs, POAP } from '../sui/poap';
 import './POAPCard.css';
 
 export function POAPCard() {
-  const {account} = useCurrentWallet();
+  const {account} = useWallet();
   const {isAuthenticated, userAddress} = useZkLogin();
   const [poaps, setPoaps] = useState<POAP[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useCurrentWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
+import { useWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
 import { buildMintPoapTx, getPOAPs } from '../sui/poap';
 import './MintPage.css';
@@ -12,7 +12,7 @@ function useQuery() {
 const MintPage = () => {
   const query = useQuery();
   const mintkey = query.get('mintkey') || '';
-  const {account} = useCurrentWallet();
+  const {account} = useWallet();
   const {isAuthenticated, userAddress } = useZkLogin();
   const [status, setStatus] = useState<'idle'|'minting'|'success'|'error'>('idle');
   const [error, setError] = useState<string>('');

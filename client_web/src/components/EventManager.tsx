@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useCurrentWallet, useSuiClient } from '../contexts/WalletContext';
+import { useWallet, useSuiClient } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
 import { buildCreateEventTx, getEvents } from '../sui/poap';
 import { POAPEvent } from '../types/poap';
@@ -60,7 +60,7 @@ export function EventManager() {
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [eventImageFile, setEventImageFile] = useState<File | null>(null);
   const [poapImageFile, setPoapImageFile] = useState<File | null>(null);
-  const { account } = useCurrentWallet();
+  const { account } = useWallet();
   const suiClient = useSuiClient();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
