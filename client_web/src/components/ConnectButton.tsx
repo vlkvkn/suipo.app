@@ -205,6 +205,9 @@ export function ConnectButton() {
           <DropdownMenu.Item onClick={() => { setIsOpen(false); navigate('/poaps'); }}>
             <Text className="wallet-name">My Collection</Text>
           </DropdownMenu.Item>
+          <DropdownMenu.Item onClick={() => { setIsOpen(false); navigate('/eventmanager'); }}>
+            <Text className="wallet-name">Event Manager</Text>
+          </DropdownMenu.Item>
           <DropdownMenu.Separator className="dropdown-separator" />
           <DropdownMenu.Item onClick={handleDisconnect}>
             Disconnect
