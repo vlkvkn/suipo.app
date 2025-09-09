@@ -22,7 +22,7 @@ function App() {
       >
         <Box>
           <a href="/">
-            <img src={`${BASE_URL}/images/logo.png`} alt="SUI POAP Logo" style={{ height: '60px', width: 'auto' }} />
+            <img src={`${BASE_URL}/images/logo.png`} alt="SUI POAP Logo" className="app-logo" />
           </a>
         </Box>
 

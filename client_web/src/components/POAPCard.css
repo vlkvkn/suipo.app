@@ -86,4 +86,19 @@
   max-width: 1400px;
   margin: 0 auto;
   align-items: stretch;
+}
+
+/* PoapsPage styles */
+.poaps-page-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.poaps-page-title {
+  color: #2586d1;
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 2.5rem;
+  text-align: center;
 } 

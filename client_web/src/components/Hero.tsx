@@ -47,16 +47,14 @@ export function Hero() {
           animate="animate"
         />
         <motion.div
-          className="gradient-orb orb-2"
+          className="gradient-orb orb-2 orb-delay-1"
           variants={floatingVariants}
           animate="animate"
-          style={{ animationDelay: '1s' }}
         />
         <motion.div
-          className="gradient-orb orb-3"
+          className="gradient-orb orb-3 orb-delay-2"
           variants={floatingVariants}
           animate="animate"
-          style={{ animationDelay: '2s' }}
         />
       </div>
 

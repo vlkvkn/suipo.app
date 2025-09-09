@@ -77,11 +77,11 @@ const MintPage = () => {
   }, [isConnected, mintkey, alreadyMinted, checking]);
 
   if (!mintkey) {
-    return <div style={{padding: 32}}>No event specified for minting.</div>;
+    return <div className="mint-page-message">No event specified for minting.</div>;
   }
 
   if (!isConnected) {
-    return <div style={{padding: 32}}>
+    return <div className="mint-page-connect-message">
         <div>Please connect your wallet to mint POAP.</div>
       </div>
   }

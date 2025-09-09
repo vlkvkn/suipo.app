@@ -15,6 +15,18 @@
 
 .mint-page-container.error {
   color: #ef4444;
+}
+
+.mint-page-message {
+  padding: 32px;
+}
+
+.mint-page-connect-message {
+  padding: 32px;
+}
+
+.mint-page-connect-message div {
+  /* Additional styles for the message content if needed */
 } 
 
 .poap-image {

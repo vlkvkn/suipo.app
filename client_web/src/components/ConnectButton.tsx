@@ -195,7 +195,7 @@ export function ConnectButton() {
           <Button variant="soft">
             {formatAddress(currentAddress!)}
             {isZkLoginConnected && (
-              <Badge color="green" variant="soft" size="1" style={{ marginLeft: '8px' }}>
+              <Badge color="green" variant="soft" size="1" className="zklogin-badge">
                 zkLogin
               </Badge>
             )}

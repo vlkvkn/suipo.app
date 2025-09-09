@@ -44,6 +44,12 @@ body {
   background: linear-gradient(135deg, #fafdff 0%, #eaf6ff 100%);
 }
 
+/* App logo */
+.app-logo {
+  height: 60px;
+  width: auto;
+}
+
 /* Accent color utility */
 :root {
   --accent-color: #4DA2FF;
