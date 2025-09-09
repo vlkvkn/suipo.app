@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useWallet, useSuiClient } from '../contexts/WalletContext';
+import { useWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
 import { buildCreateEventTx, getEvents } from '../sui/poap';
 import { POAPEvent } from '../types/poap';
@@ -61,17 +61,27 @@ export function EventManager() {
   const [eventImageFile, setEventImageFile] = useState<File | null>(null);
   const [poapImageFile, setPoapImageFile] = useState<File | null>(null);
   const { account } = useWallet();
+  const { userAddress: zkUserAddress, isAuthenticated: isZkAuthenticated } = useZkLogin();
   const suiClient = useSuiClient();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+
+  // Determine if user is authenticated (either via wallet or zkLogin)
+  const isUserAuthenticated = account?.address || (isZkAuthenticated && zkUserAddress);
+  const currentUserAddress = account?.address || zkUserAddress;
 
   useEffect(() => {
     loadEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentUserAddress]);
 
   const loadEvents = async () => {
+    if (!currentUserAddress) {
+      setEvents([]);
+      return;
+    }
+    
     try {
-      const eventsList = await getEvents(suiClient);
+      const eventsList = await getEvents(suiClient, currentUserAddress);
       setEvents(eventsList as POAPEvent[]);
     } catch (error) {
       console.error('Error loading events:', error);
@@ -151,8 +161,8 @@ export function EventManager() {
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!account?.address) {
-      alert('Please connect your wallet first');
+    if (!currentUserAddress) {
+      alert('Please connect your wallet or authenticate with zkLogin first');
       return;
     }
 
@@ -220,8 +230,15 @@ export function EventManager() {
   return (
     <div className="event-manager-container">
       <h2 className="event-manager-title">Event Manager</h2>
+      
+      {!isUserAuthenticated && (
+        <div className="event-manager-wallet-warning">
+          Please connect your wallet or authenticate with zkLogin to view and manage your events.
+        </div>
+      )}
 
-      <form onSubmit={handleCreateEvent} className="event-manager-form">
+      {isUserAuthenticated && (
+        <form onSubmit={handleCreateEvent} className="event-manager-form">
         <div className="event-manager-input-group">
           <input
             type="text"
@@ -295,12 +312,7 @@ export function EventManager() {
             className="event-manager-input"
             required
           />
-          <div style={{
-            fontSize: '0.75rem',
-            color: '#666',
-            marginTop: '0.25rem',
-            gridColumn: '1 / -1'
-          }}>
+          <div className="event-manager-event-tip">
             Tip: Use current timestamp + desired days (e.g., {Date.now()} + 86400000 for 1 day)
           </div>
         </div>
@@ -317,11 +329,18 @@ export function EventManager() {
             {uploadProgress}
           </div>
         )}
-      </form>
+        </form>
+      )}
 
-      <div className="event-manager-events-container">
+      {isUserAuthenticated && (
+        <div className="event-manager-events-container">
         <div className="event-manager-events-list">
-          {events.map((event) => (
+          {events.length === 0 && isUserAuthenticated ? (
+            <div className="event-manager-empty-state">
+              No events created yet. Create your first event using the form above.
+            </div>
+          ) : !isUserAuthenticated ? null : (
+            events.map((event) => (
             <div key={event.id} className="event-manager-event-card">
               <div className="event-manager-event-content">
                 <img
@@ -332,13 +351,13 @@ export function EventManager() {
                 <div className="event-manager-event-info">
                   <div className="event-manager-event-name">{event.name}</div>
                   <div className="event-manager-event-description">{event.description}</div>
-                  <div className="event-manager-event-description" style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
+                  <div className="event-manager-event-description event-manager-event-detail">
                     POAP: {event.poapName}
                   </div>
-                  <div className="event-manager-event-description" style={{ fontSize: '0.7rem' }}>
+                  <div className="event-manager-event-description event-manager-event-detail-no-margin">
                     Visitors: {event.visitors.length}
                   </div>
-                  <div className="event-manager-event-description" style={{ fontSize: '0.7rem' }}>
+                  <div className="event-manager-event-description event-manager-event-detail-no-margin">
                     Expires: {(() => {
                       const timestamp = Number(event.expiredAt);
                       if (isNaN(timestamp) || timestamp === 0) {
@@ -348,18 +367,20 @@ export function EventManager() {
                     })()}
                   </div>
                 </div>
-                <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div className="event-manager-qr-container">
                   <QRCode value={`${BASE_URL}/mint?mintkey=${encodeURIComponent(event.name)}`} size={64} />
                   {/* Direct mint link for mobile or desktop users */}
                   <a href={`${BASE_URL}/mint?mintkey=${encodeURIComponent(event.name)}`} target="_blank"
-                    rel="noopener noreferrer" style={{ marginTop: 8, fontSize: '0.85rem', color: '#2563eb', wordBreak: 'break-all' }}
+                    rel="noopener noreferrer" className="event-manager-mint-link"
                   >Mint POAP</a>
                 </div>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 } 

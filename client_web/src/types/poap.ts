@@ -9,6 +9,7 @@ export interface POAPEvent {
   poapImgPath: string;
   expiredAt: number;
   visitors: string[];
+  creator: string;
 }
 
 export interface POAP {

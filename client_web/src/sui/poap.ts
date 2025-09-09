@@ -56,7 +56,7 @@ export async function getPOAPs(suiClient: SuiClient, address: string): Promise<P
 }
 
 // Get events
-export async function getEvents(suiClient: any): Promise<POAPEvent[]> {
+export async function getEvents(suiClient: any, creatorAddress?: string): Promise<POAPEvent[]> {
   try {
     const eventConfig = await suiClient.getObject({
       id: EVENT_CONFIG_ID,
@@ -67,6 +67,11 @@ export async function getEvents(suiClient: any): Promise<POAPEvent[]> {
       console.error('EventConfig not found or invalid');
       throw new Error('EventConfig not found');
     }
+
+    // Get creator from EventConfig
+    const configContent = eventConfig.data?.content as any;
+    const configFields = configContent?.fields || {};
+    const creator = configFields.creator || '';
 
     const dynamicFields = await suiClient.getDynamicFields({
       parentId: eventConfig.data.objectId,
@@ -92,11 +97,18 @@ export async function getEvents(suiClient: any): Promise<POAPEvent[]> {
           poapDescription: fields.poap_description,
           poapImgPath: fields.poap_img_path,
           expiredAt: fields.expired_at || 0,
-          visitors: fields.visitors || []
+          visitors: fields.visitors || [],
+          creator: creator
         };
         return eventData;
       })
     );
+
+    // Filter events by creator if creatorAddress is provided
+    if (creatorAddress) {
+      return eventsList.filter(event => event.creator === creatorAddress);
+    }
+
     return eventsList;
   } catch (error) {
     console.error('Error getting events:', error);
