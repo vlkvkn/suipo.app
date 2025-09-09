@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button, DropdownMenu, Text, Badge } from '@radix-ui/themes';
 import { getWallets, Wallet, WalletWithRequiredFeatures } from '@mysten/wallet-standard';
-import { useWallet, useZkLogin } from '../contexts/WalletContext';
+import { useAuth } from '../contexts/WalletContext';
 import { popularWallets } from '../config/wallets';
 import './ConnectButton.css';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -17,8 +17,15 @@ interface WalletInfo {
 }
 
 export function ConnectButton() {
-  const { account, connected, connecting, connect, disconnect } = useWallet();
-  const { isAuthenticated, isLoading: zkLoginLoading, userAddress, login: zkLogin, logout: zkLogout } = useZkLogin();
+  const { 
+    userAddress, 
+    isConnected, 
+    isZkLoginConnected, 
+    isLoading, 
+    disconnect,
+    wallet,
+    zkLogin 
+  } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [availableWallets, setAvailableWallets] = useState<WalletInfo[]>([]);
   const location = useLocation();
@@ -137,7 +144,7 @@ export function ConnectButton() {
     if (walletInfo.type === 'zklogin') {
       // Handle zkLogin
       try {
-        await zkLogin();
+        await zkLogin.login();
       } catch (error) {
         console.error('Failed to connect zkLogin:', error);
         alert('Failed to connect zkLogin. Please try again.');
@@ -155,7 +162,7 @@ export function ConnectButton() {
 
     try {
       // Cast to WalletWithRequiredFeatures for the connect function
-      await connect(walletInfo.wallet as WalletWithRequiredFeatures);
+      await wallet.connect(walletInfo.wallet as WalletWithRequiredFeatures);
       if (location.pathname === "/") {
         navigate('/poaps', { replace: true });
       }
@@ -166,7 +173,6 @@ export function ConnectButton() {
   };
 
   const handleDisconnect = () => {
-    zkLogout();
     disconnect();
     setIsOpen(false);
   };
@@ -176,7 +182,7 @@ export function ConnectButton() {
   };
 
   // Show loading state for either wallet connection or zkLogin
-  if (connecting || zkLoginLoading) {
+  if (isLoading) {
     return (
       <Button disabled>
         Connecting...
@@ -185,15 +191,14 @@ export function ConnectButton() {
   }
 
   // Show connected state for either wallet or zkLogin
-  if ((connected && account) || (isAuthenticated && userAddress)) {
-    const currentAddress = account?.address || userAddress;
-    const isZkLoginConnected = isAuthenticated && userAddress;
+  if (isConnected && userAddress) {
+    const currentAddress = userAddress;
 
     return (
       <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenu.Trigger>
           <Button variant="soft">
-            {formatAddress(currentAddress!)}
+            {formatAddress(currentAddress)}
             {isZkLoginConnected && (
               <Badge color="green" variant="soft" size="1" className="zklogin-badge">
                 zkLogin

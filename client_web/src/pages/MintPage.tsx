@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
+import { useAuth, useSuiClient } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
 import { buildMintPoapTx, getPOAPs } from '../sui/poap';
 import './MintPage.css';
@@ -12,8 +12,7 @@ function useQuery() {
 const MintPage = () => {
   const query = useQuery();
   const mintkey = query.get('mintkey') || '';
-  const {account} = useWallet();
-  const {isAuthenticated, userAddress } = useZkLogin();
+  const { userAddress, isConnected, isZkLoginConnected } = useAuth();
   const [status, setStatus] = useState<'idle'|'minting'|'success'|'error'>('idle');
   const [error, setError] = useState<string>('');
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
@@ -21,16 +20,12 @@ const MintPage = () => {
   const [alreadyMinted, setAlreadyMinted] = useState(false);
   const [checking, setChecking] = useState(true);
 
-  // Check if user is connected via either standard wallet or zkLogin
-  const isConnected = account?.address || (isAuthenticated && userAddress);
-  const isZkLoginConnected = isAuthenticated && userAddress;
-
   useEffect(() => {
     async function checkAlreadyMinted() {
       if (isConnected && mintkey) {
         setChecking(true);
         try {
-          const address = account?.address || userAddress || '';
+          const address = userAddress || '';
           const userPoaps = await getPOAPs(suiClient, address);
           const hasPoap = userPoaps.some(poap => poap.eventKey === mintkey);
           setAlreadyMinted(hasPoap);

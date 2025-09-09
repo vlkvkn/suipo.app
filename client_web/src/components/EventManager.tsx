@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useWallet, useSuiClient, useZkLogin } from '../contexts/WalletContext';
+import { useAuth, useSuiClient } from '../contexts/WalletContext';
 import { useSignAndExecuteTransaction } from '../hooks/useSignAndExecuteTransaction';
 import { buildCreateEventTx, getEvents } from '../sui/poap';
 import { POAPEvent } from '../types/poap';
@@ -60,14 +60,13 @@ export function EventManager() {
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [eventImageFile, setEventImageFile] = useState<File | null>(null);
   const [poapImageFile, setPoapImageFile] = useState<File | null>(null);
-  const { account } = useWallet();
-  const { userAddress: zkUserAddress, isAuthenticated: isZkAuthenticated } = useZkLogin();
+  const { userAddress, isConnected } = useAuth();
   const suiClient = useSuiClient();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
   // Determine if user is authenticated (either via wallet or zkLogin)
-  const isUserAuthenticated = account?.address || (isZkAuthenticated && zkUserAddress);
-  const currentUserAddress = account?.address || zkUserAddress;
+  const isUserAuthenticated = isConnected;
+  const currentUserAddress = userAddress;
 
   useEffect(() => {
     loadEvents();

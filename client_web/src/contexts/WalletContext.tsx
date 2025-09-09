@@ -221,7 +221,6 @@ export function useWallet() {
   };
 }
 
-
 export function useSuiClient() {
   const suiClient = useContext(SuiClientContext);
   if (!suiClient) {
@@ -345,6 +344,80 @@ export function useZkLogin() {
     maxEpoch,
     login,
     logout,
+  };
+}
+
+export function useAuth() {
+  const wallet = useWallet();
+  const zkLogin = useZkLogin();
+  const store = useContext(WalletContext);
+  
+  if (!store) {
+    throw new Error('useAuth must be used within a WalletProvider');
+  }
+
+  const wallets = useStore(store, (state) => state.wallets);
+
+  // Unified user address - prioritize zkLogin if authenticated, otherwise use wallet
+  const userAddress = zkLogin.isAuthenticated && zkLogin.userAddress 
+    ? zkLogin.userAddress 
+    : wallet.account?.address || null;
+
+  // Unified connection status
+  const isConnected = wallet.connected || zkLogin.isAuthenticated;
+  const isZkLoginConnected = zkLogin.isAuthenticated && zkLogin.userAddress;
+
+  // Unified loading status
+  const isLoading = wallet.connecting || zkLogin.isLoading;
+
+  // Unified connect function - tries wallet first, then zkLogin
+  const connect = async (selectedWallet?: WalletWithRequiredFeatures) => {
+    if (wallets && wallets.length > 0) {
+      return wallet.connect(selectedWallet);
+    } else {
+      return zkLogin.login();
+    }
+  };
+
+  // Unified disconnect function
+  const disconnect = () => {
+    if (isZkLoginConnected) {
+      zkLogin.logout();
+    } else {
+      wallet.disconnect();
+    }
+  };
+
+  return {
+    // Unified interface
+    userAddress,
+    isConnected,
+    isZkLoginConnected,
+    isLoading,
+    connect,
+    disconnect,
+    
+    // Access to specific implementations if needed
+    wallet: {
+      account: wallet.account,
+      wallet: wallet.wallet,
+      connected: wallet.connected,
+      connecting: wallet.connecting,
+      wallets: wallets,
+      connect: wallet.connect,
+      disconnect: wallet.disconnect
+    },
+    zkLogin: {
+      userAddress: zkLogin.userAddress,
+      isAuthenticated: zkLogin.isAuthenticated,
+      isLoading: zkLogin.isLoading,
+      proofData: zkLogin.proofData,
+      ephemeralKeyPair: zkLogin.ephemeralKeyPair,
+      jwt: zkLogin.jwt,
+      maxEpoch: zkLogin.maxEpoch,
+      login: zkLogin.login,
+      logout: zkLogin.logout
+    }
   };
 }
 
